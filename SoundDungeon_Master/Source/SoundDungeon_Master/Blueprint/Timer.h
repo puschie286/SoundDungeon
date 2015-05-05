@@ -8,13 +8,12 @@
 /**
  * 
  */
-UCLASS( BlueprintType )
+UCLASS()
 class SOUNDDUNGEON_MASTER_API UTimer : public UObject
 {
 	GENERATED_BODY()
-	
+
 public:
-	UTimer();
 
 	UFUNCTION( BlueprintCallable, Category = "Timer" )
 	void Start();
@@ -29,14 +28,15 @@ public:
 	void Update( float DeltaTime );
 
 	UFUNCTION( BlueprintCallable, Category = "Timer" )
-	float GetActiveTime();
+	float GetTime();
 
 	UFUNCTION( BlueprintCallable, Category = "Timer" )
 	bool IsActive();
 
 protected:
+	UPROPERTY( VisibleAnywhere, BlueprintReadOnly )
+	bool Active;
 
-	float ActiveTime;
-
-	bool isActive;
+	UPROPERTY( VisibleAnywhere, BlueprintReadOnly )
+	float Time;
 };

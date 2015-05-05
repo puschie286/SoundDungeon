@@ -3,41 +3,36 @@
 #include "SoundDungeon_Master.h"
 #include "Timer.h"
 
-UTimer::UTimer()
-{
-	ActiveTime = 0.f;
-	isActive = false;
-}
-
 void UTimer::Start()
 {
-	isActive = true;
+	Active = true;
 }
 
 void UTimer::Stop()
 {
-	isActive = false;
+	Active = false;
 }
 
 void UTimer::Reset()
 {
-	ActiveTime = 0.f;
+	Active = false;
+	Time = 0.f;
 }
 
 void UTimer::Update( float DeltaTime )
 {
-	if( isActive )
+	if( Active )
 	{
-		ActiveTime += DeltaTime;
+		Time += DeltaTime;
 	}
 }
 
-float UTimer::GetActiveTime()
+float UTimer::GetTime()
 {
-	return ActiveTime;
+	return Time;
 }
 
 bool UTimer::IsActive()
 {
-	return isActive;
+	return Active;
 }
