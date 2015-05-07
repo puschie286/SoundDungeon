@@ -7,7 +7,8 @@ public class SoundDungeon_Master : ModuleRules
 	public SoundDungeon_Master(TargetInfo Target)
 	{
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore" });
-
+        PublicDependencyModuleNames.AddRange(new string[] { "Kiss_FFT" });
+        
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
 		// Uncomment if you are using Slate UI
