@@ -20,12 +20,13 @@ private:
 	UWAVLibrary();
 
 	static UWAVLibrary* Instance;
-
-	TMap<FName, TArray<uint8>*> DataStorage;
+	TMap<FName, TPair<uint8, TArray<uint8>*>> DataStorage;
 
 	FString Path;
 
 	bool CheckFName( FName Name );
+
+	bool CheckStorageContain( FName Name );
 
 public:
 
@@ -37,5 +38,11 @@ public:
 
 	TArray<uint8>* GetWAV( FName WAVName );
 
+	bool FinishedUsage( FName WAVName );
+
+	bool FinishedUsage( TArray<uint8>* WavPtr );
+
 	bool bUseLog;
+
+	bool bUnloadWhenNotUsed;
 };

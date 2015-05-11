@@ -12,6 +12,20 @@ float GetFFTInValue( const int16 SampleValue, const int16 SampleIndex, const int
 	return SampleValue * ( 0.5f * ( 1 - FMath::Cos( 2 * PI * SampleIndex / ( SampleCount - 1 ) ) ) );
 }
 
+bool UVisualizableAudioComponent::CheckSoundWave()
+{
+	if( SoundWave )
+	{
+		return true;
+	}
+	else if( Sound )
+	{
+		SoundWave = (USoundWave*)Sound;
+		return true;
+	}
+	return false;
+}
+
 UVisualizableAudioComponent::UVisualizableAudioComponent( const FObjectInitializer& ObjectInitializer )
 	: Super( ObjectInitializer )
 {
@@ -24,52 +38,68 @@ UVisualizableAudioComponent::UVisualizableAudioComponent( const FObjectInitializ
 	IsLoaded = false;
 
 	PlayTime = 0.f;
+
+	pWavLib = UWAVLibrary::GetInstance();
 }
 
-void UVisualizableAudioComponent::LoadData( FString FileName )
+void UVisualizableAudioComponent::LoadData( FString File )
 {
-	FString Path = FPaths::GameDir() + "Content\\AudioFiles\\";
-
-	if( SoundWave )
+	if( CheckSoundWave() )
 	{
-		if( FileName.IsEmpty() || FileName == "None" || FileName == "none" )
+		FName FileName;
+		if( File.IsEmpty() || File == "None" || File == "none" )
 		{
 			if( UseSoundName )
 			{
-				Path += SoundWave->GetName();
+				FileName = FName( *( SoundWave->GetName() ) );
 			}
 			else
 			{
-				Path += DataName;
+				FileName = FName( *( DataName ) );
 			}
 		}
 		else
 		{
-			Path += FileName;
+			FileName = FName( *( File ) );
 		}
 
-		if( !Path.Contains( ".wav" ) )
-		{
-			Path += ".wav";
-		}
-
-		bool FileLoaded = FFileHelper::LoadFileToArray( wavData, Path.GetCharArray().GetData() );
+		bool FileLoaded = pWavLib->LoadWAV( FileName );
 		
 		if( FileLoaded )
 		{
-			SoundWave = ( USoundWave* )this->Sound;
+			wavData = pWavLib->GetWAV( FileName );
 			IsLoaded = true;
-			UE_LOG( LogTemp, Log, TEXT( "AudioData loading successfull : %s" ), *( Path ) );
+			UE_LOG( LogTemp, Log, TEXT( "AudioData loading successfull : %s" ), *( FileName.ToString() ) );
 		}
 		else
 		{
-			wavData.Empty();
-			UE_LOG( LogTemp, Warning, TEXT( "AudioData loading failed : %s " ), *( Path ) );
+			wavData = nullptr;
+			UE_LOG( LogTemp, Warning, TEXT( "AudioData loading failed : %s " ), *( FileName.ToString() ) );
 		}
 	} 
 	else
 	{
 		UE_LOG( LogTemp, Warning, TEXT( "No Sound selected" ) );
+	}
+}
+
+void UVisualizableAudioComponent::UnloadData()
+{
+	if( IsLoaded )
+	{
+		if( !pWavLib->FinishedUsage( FName( *( SoundWave->GetName() ) ) ) )
+		{
+			UE_LOG( LogTemp, Warning, TEXT( "UnloadData failed" ) );
+		}
+		else
+		{
+			wavData = nullptr;
+			IsLoaded = false;
+		}
+	}
+	else
+	{
+		UE_LOG( LogTemp, Log, TEXT( "No Data loaded" ) );
 	}
 }
 
@@ -162,7 +192,7 @@ void UVisualizableAudioComponent::GetAmplitude( int32 Channel, float StartTime, 
 
 void UVisualizableAudioComponent::PlaySound( float StartTime )
 {
-	if( SoundWave )
+	if( CheckSoundWave() )
 	{
 		if( StartTime >= 0.f && StartTime < SoundWave->Duration )
 		{
@@ -174,7 +204,7 @@ void UVisualizableAudioComponent::PlaySound( float StartTime )
 
 void UVisualizableAudioComponent::StopSound()
 {
-	if( SoundWave )
+	if( CheckSoundWave() )
 	{
 		this->PlayTime = 0.f;
 		this->Stop();
@@ -183,7 +213,7 @@ void UVisualizableAudioComponent::StopSound()
 
 void UVisualizableAudioComponent::PauseSound()
 {
-	if( SoundWave )
+	if( CheckSoundWave() )
 	{
 		this->Stop();
 	}
@@ -191,7 +221,7 @@ void UVisualizableAudioComponent::PauseSound()
 
 void UVisualizableAudioComponent::UnpauseSound()
 {
-	if( SoundWave )
+	if( CheckSoundWave() )
 	{
 		if( this->PlayTime >= 0.f && this->PlayTime < SoundWave->Duration )
 		{
@@ -228,11 +258,11 @@ void UVisualizableAudioComponent::CalculateFrequencySpectrum( const bool bSplitC
 				OutSpectrum[ChannelIndex].AddZeroed( SpectrumWidth );
 			}
 
-			if( wavData.Num() > 0 )
+			if( wavData->Num() > 0 )
 			{
 				// Lock RAW Data
-				uint8 *RawWaveData = wavData.GetData();
-				int32 RawDataSize = wavData.Num();
+				uint8 *RawWaveData = wavData->GetData();
+				int32 RawDataSize = wavData->Num();
 				FWaveModInfo WaveInfo;
 
 				// Parse WaveData
@@ -440,10 +470,10 @@ void UVisualizableAudioComponent::GetAmplitude( const bool bSplitChannels, const
 				OutAmplitudes[ChannelIndex].AddZeroed( AmplitudeBuckets );
 			}
 
-			if( wavData.Num() > 0 )
+			if( wavData->Num() > 0 )
 			{
-				uint8 *RawWaveData = wavData.GetData();
-				int32 RawDataSize = wavData.Num();
+				uint8 *RawWaveData = wavData->GetData();
+				int32 RawDataSize = wavData->Num();
 
 				FWaveModInfo WaveInfo;
 
@@ -567,4 +597,3 @@ void UVisualizableAudioComponent::GetAmplitude( const bool bSplitChannels, const
 		UE_LOG( LogTemp, Warning, TEXT( "No AudioData loaded" ) );
 	}
 }
-

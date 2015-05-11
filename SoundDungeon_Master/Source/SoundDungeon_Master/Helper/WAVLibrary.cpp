@@ -7,6 +7,7 @@ UWAVLibrary::UWAVLibrary()
 {
 	this->AddToRoot();
 	bUseLog = true;
+	bUnloadWhenNotUsed = true;
 	Path = FPaths::GameDir() + "Content\\AudioFiles\\";
 }
 
@@ -34,6 +35,19 @@ bool UWAVLibrary::CheckFName( FName Name )
 	return false;
 }
 
+bool UWAVLibrary::CheckStorageContain( FName Name )
+{
+	if( DataStorage.Contains( Name ) )
+	{
+		return true;
+	}
+	else if( bUseLog )
+	{
+		UE_LOG( LogTemp, Log, TEXT( "WAV File %s not loaded" ), *( Name.ToString() ) );
+	}
+	return false;
+}
+
 bool UWAVLibrary::LoadWAV( FName WAVName )
 {
 	if( CheckFName( WAVName ) )
@@ -52,7 +66,10 @@ bool UWAVLibrary::LoadWAV( FName WAVName )
 
 			if( loaded )
 			{
-				DataStorage.Add( WAVName, TempWAVData );
+				TPair<uint8, TArray<uint8>*> TempDataPair;
+				TempDataPair.Key = 0;
+				TempDataPair.Value = TempWAVData;
+				DataStorage.Add( WAVName, TempDataPair );
 
 				if( bUseLog )
 				{
@@ -65,9 +82,13 @@ bool UWAVLibrary::LoadWAV( FName WAVName )
 				UE_LOG( LogTemp, Warning, TEXT( "Cant load File %s at Path : %s" ), *( WAVName.ToString() ), *( Path ) );
 			}
 		}
-		else if( bUseLog )
+		else
 		{
-			UE_LOG( LogTemp, Log, TEXT( "WAV File %s allready loaded." ), *( WAVName.ToString() ) );
+			if( bUseLog )
+			{
+				UE_LOG( LogTemp, Log, TEXT( "WAV File %s allready loaded." ), *( WAVName.ToString() ) );
+			}
+			return true;
 		}
 	}
 	return false;
@@ -77,14 +98,10 @@ bool UWAVLibrary::UnloadWAV( FName WAVName )
 {
 	if( CheckFName( WAVName ) )
 	{
-		if( DataStorage.Contains( WAVName ) )
+		if( CheckStorageContain( WAVName ) )
 		{
 			DataStorage.Remove( WAVName );
 			return true;
-		}
-		else if( bUseLog )
-		{
-			UE_LOG( LogTemp, Log, TEXT( "WAV File %s not loaded" ), *( WAVName.ToString() ) );
 		}
 	}
 	return false;
@@ -92,9 +109,66 @@ bool UWAVLibrary::UnloadWAV( FName WAVName )
 
 TArray<uint8>* UWAVLibrary::GetWAV( FName WAVName )
 {
-	if( CheckFName )
+	if( CheckFName( WAVName ) )
 	{
-		if(  )
+		if( CheckStorageContain( WAVName ) )
+		{
+			++DataStorage[WAVName].Key;
+			return( DataStorage[WAVName].Value );
+		}
 	}
 	return NULL;
+}
+
+bool UWAVLibrary::FinishedUsage( FName WAVName )
+{
+	if( CheckFName( WAVName ) )
+	{
+		if( CheckStorageContain( WAVName ) )
+		{
+			--DataStorage[WAVName].Key;
+			if( bUnloadWhenNotUsed && DataStorage[WAVName].Key == 0 )
+			{
+				if( bUseLog )
+				{
+					UE_LOG( LogTemp, Log, TEXT( "WAV unload : %s" ), *( WAVName.ToString() ) );
+				}
+				return UnloadWAV( WAVName );
+			}
+			return true;
+		}
+	}
+	return false;
+}
+
+bool UWAVLibrary::FinishedUsage( TArray<uint8>* WavPtr )
+{
+	if( WavPtr != NULL )
+	{
+		for( auto pair : DataStorage )
+		{
+			if( pair.Value.Value == WavPtr )
+			{
+				--pair.Value.Key;
+				if( bUnloadWhenNotUsed && pair.Value.Key == 0 )
+				{
+					if( bUseLog )
+					{
+						UE_LOG( LogTemp, Log, TEXT( "WAV unload : %s" ), *( pair.Key.ToString() ) );
+					}
+					return UnloadWAV( pair.Key );
+				}
+				return true;
+			}
+		}
+		if( bUseLog )
+		{
+			UE_LOG( LogTemp, Warning, TEXT( "Wav Ptr not found" ) );
+		}
+	}
+	else if( bUseLog )
+	{
+		UE_LOG( LogTemp, Warning, TEXT( "NULL Pointer" ) );
+	}
+	return false;
 }
