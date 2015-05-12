@@ -172,3 +172,24 @@ bool UWAVLibrary::FinishedUsage( TArray<uint8>* WavPtr )
 	}
 	return false;
 }
+
+// Blueprint functions
+void UWAVLibrary::LIBLoadWAV( FString WAVName )
+{
+	UWAVLibrary::GetInstance()->LoadWAV( *( WAVName ) );
+}
+
+void UWAVLibrary::LIBUnloadWAV( FString WAVName )
+{
+	UWAVLibrary::GetInstance()->UnloadWAV( *( WAVName ) );
+}
+
+void UWAVLibrary::LIBFinishedUsage( FString WAVName )
+{
+	UWAVLibrary::GetInstance()->FinishedUsage( *( WAVName ) );
+}
+
+void UWAVLibrary::LIBGetWAV( FString WAVName, TArray<uint8>& OutData )
+{
+	OutData = *UWAVLibrary::GetInstance()->GetWAV( *( WAVName ) );
+}

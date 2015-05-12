@@ -11,7 +11,7 @@
 /**
  * 
  */
-UCLASS()
+UCLASS( ClassGroup = ( Custom ), Meta = ( BlueprintSpawnableComponent ) )
 class SOUNDDUNGEON_MASTER_API UWAVLibrary : public UObject
 {
 	GENERATED_BODY()
@@ -45,4 +45,17 @@ public:
 	bool bUseLog;
 
 	bool bUnloadWhenNotUsed;
+
+	// Blueprint functions
+	UFUNCTION( BlueprintCallable, Category = "SoundVisualize" )
+	static void LIBLoadWAV( FString WAVName );
+
+	UFUNCTION( BlueprintCallable, Category = "SoundVisualize" )
+	static void LIBUnloadWAV( FString WAVName );
+
+	UFUNCTION( BlueprintCallable, Category = "SoundVisualize" )
+	static void LIBFinishedUsage( FString WAVName );
+
+	UFUNCTION( BlueprintCallable, Category = "SoundVisualize" )
+	static void LIBGetWAV( FString WAVName, TArray<uint8>& OutData );
 };
