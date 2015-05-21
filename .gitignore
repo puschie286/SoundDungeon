@@ -19,3 +19,5 @@
 *.lo
 *.o
 *.obj
+SoundDungeon_Master/Content/AudioFiles/MainVocal.uasset
+SoundDungeon_Master/Content/Blueprints/ExampleGrabCharacter.uasset
