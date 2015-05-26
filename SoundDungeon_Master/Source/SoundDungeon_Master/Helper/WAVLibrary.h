@@ -5,6 +5,7 @@
 #include "Object.h"
 
 #include "Containers/Map.h"
+#include "CustomMeshComponent.h"
 
 #include "WAVLibrary.generated.h"
 
@@ -42,6 +43,11 @@ public:
 
 	bool FinishedUsage( TArray<uint8>* WavPtr );
 
+	bool GenerateWaveform( FName WAVName, UCustomMeshComponent* InComponent );
+
+	bool GenerateWaveform( TArray<uint8>* WavPtr, UCustomMeshComponent* InComponent );
+
+
 	bool bUseLog;
 
 	bool bUnloadWhenNotUsed;
@@ -58,4 +64,10 @@ public:
 
 	UFUNCTION( BlueprintCallable, Category = "SoundVisualize" )
 	static void LIBGetWAV( FString WAVName, TArray<uint8>& OutData );
+
+	UFUNCTION( BlueprintCallable, Category = "SoundVisualize" )
+	static void LIBGetWaveform( FString WAVName, UCustomMeshComponent* InComponent );
+
+	UFUNCTION( BlueprintCallable, Category = "SoundVisualize" )
+	static void LIBGetWaveformFromData( TArray<uint8>& InData, UCustomMeshComponent* InComponent );
 };

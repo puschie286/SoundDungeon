@@ -492,7 +492,7 @@ void UVisualizableAudioComponent::GetAmplitude( const bool bSplitChannels, const
 					}
 					else
 					{
-						UE_LOG( LogTemp, Log, TEXT( "WARNING, Amplitude : Not supported in packed" ) );
+						UE_LOG( LogTemp, Warning, TEXT( "WARNING, Amplitude : Not supported in packed" ) );
 #if WITH_EDITORONLY_DATA
 						for( int32 ChannelIndex = 0; ChannelIndex < NumChannels; ++ChannelIndex )
 						{
@@ -536,7 +536,7 @@ void UVisualizableAudioComponent::GetAmplitude( const bool bSplitChannels, const
 						}
 						else
 						{
-							UE_LOG( LogTemp, Log, TEXT( "WARNING, Amplitude : Not supported in packed" ) );
+							UE_LOG( LogTemp, Warning, TEXT( "WARNING, Amplitude : Not supported in packed" ) );
 #if WITH_EDITORONLY_DATA
 							uint32 SamplesRead = 0;
 							int64 SampleSum = 0;
