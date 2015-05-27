@@ -45,10 +45,7 @@ public:
 
 	bool FinishedUsage( TArray<uint8>* WavPtr );
 
-	bool GenerateWaveform( FName WAVName, UCustomMeshComponent* InComponent );
-
-	bool GenerateWaveform( TArray<uint8>* WavPtr, UCustomMeshComponent* InComponent );
-
+	bool GenerateWaveform( TArray<uint8>* WavPtr, UCustomMeshComponent* InComponent, bool DrawChannels = false, bool DrawAsCurve = false, uint32 Width = 300, uint32 Height = 100 );
 
 	bool bUseLog;
 
@@ -68,8 +65,8 @@ public:
 	static void LIBGetWAV( FString WAVName, TArray<uint8>& OutData );
 
 	UFUNCTION( BlueprintCallable, Category = "SoundVisualize" )
-	static void LIBGetWaveform( FString WAVName, UCustomMeshComponent* InComponent );
+	static void LIBGetWaveform( FString WAVName, UCustomMeshComponent* InComponent, bool DrawChannels = false, bool DrawAsCurve = false, int32 Width = 300, int32 Height = 100 );
 
 	UFUNCTION( BlueprintCallable, Category = "SoundVisualize" )
-	static void LIBGetWaveformFromData( TArray<uint8>& InData, UCustomMeshComponent* InComponent );
+	static void LIBGetWaveformFromData( TArray<uint8>& InData, UCustomMeshComponent* InComponent, bool DrawChannels = false, bool DrawAsCurve = false, int32 Width = 300, int32 Height = 100 );
 };
