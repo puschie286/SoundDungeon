@@ -29,6 +29,8 @@ private:
 
 	bool CheckStorageContain( FName Name );
 
+	void GenerateLine( TArray<FCustomMeshTriangle>& List, FVector2D StartPos, FVector2D EndPos, float Scale = 1.f );
+
 public:
 
 	static UWAVLibrary* GetInstance();

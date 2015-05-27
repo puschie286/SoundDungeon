@@ -48,6 +48,25 @@ bool UWAVLibrary::CheckStorageContain( FName Name )
 	return false;
 }
 
+void UWAVLibrary::GenerateLine( TArray<FCustomMeshTriangle>& List, FVector2D StartPos, FVector2D EndPos, float Scale )
+{
+	FCustomMeshTriangle Triangle0, Triangle1;
+
+	float x0 = StartPos.X, x1 = EndPos.X;
+	float y0 = StartPos.Y, y1 = EndPos.Y;
+
+	Triangle0.Vertex0 = FVector( x0 + 0.f, y0 + 0.f, 0.f );
+	Triangle0.Vertex1 = FVector( x0 + 1.f * Scale, y0 + 0.f, 0.f );
+	Triangle0.Vertex2 = FVector( x1 + 0.f, y1 + 1.f * Scale, 0.f );
+
+	Triangle1.Vertex0 = FVector( x0 + 1.f * Scale, y0 + 0.f, 0.f );
+	Triangle1.Vertex1 = FVector( x1 + 1.f * Scale, y1 + 1.f * Scale, 0.f );
+	Triangle1.Vertex2 = FVector( x1 + 0.f, y1 + 1.f * Scale, 0.f );
+
+	List.Add( Triangle0 );
+	List.Add( Triangle1 );
+}
+
 bool UWAVLibrary::LoadWAV( FName WAVName )
 {
 	if( CheckFName( WAVName ) )
@@ -186,18 +205,12 @@ bool UWAVLibrary::GenerateWaveform( TArray<uint8>* WavPtr, UCustomMeshComponent*
 		int32 X = 0;
 		int32 Y = 0;
 		uint32 Width = 300;
-		uint32 Height = 100; 
+		uint32 Height = 100;
 
-		// TODO : Canvas
-		FCanvas* Canvas = NULL;
-		
 		// Copy from ThumbnailRendering
 		bool bDrawChannels = true;
 		bool bDrawAsCurve = false;
 
-		FCanvasLineItem LineItem;
-		LineItem.SetColor( FLinearColor::White );
-		
 		uint8* RawWaveData = WavPtr->GetData();
 		int32 RawDataSize = WavPtr->Num();
 		FWaveModInfo WaveInfo;
@@ -223,6 +236,8 @@ bool UWAVLibrary::GenerateWaveform( TArray<uint8>* WavPtr, UCustomMeshComponent*
 			}
 			const uint32 SamplesPerX = ( SampleCount / Width ) + 1;
 			float LastScaledSample[10] = { 0.f };
+
+			TArray<FCustomMeshTriangle> TriangleList;
 
 			for( uint32 XOffset = 0; XOffset < Width - 1; ++XOffset )
 			{
@@ -253,14 +268,14 @@ bool UWAVLibrary::GenerateWaveform( TArray<uint8>* WavPtr, UCustomMeshComponent*
 							if( XOffset > 0 )
 							{
 								const float YCenter = Y + ( ( 2 * ChannelIndex ) + 1 ) * Height / ( 2.f * numChannels );
-								//LineItem.Draw( Canvas, FVector2D( X + XOffset - 1, YCenter + LastScaledSample[ChannelIndex] ), FVector2D( X + XOffset, YCenter + ScaledSample ) );
+								GenerateLine( TriangleList, FVector2D( X + XOffset - 1, YCenter + LastScaledSample[ChannelIndex] ), FVector2D( X + XOffset, YCenter + ScaledSample ) );
 							}
 							LastScaledSample[ChannelIndex] = ScaledSample;
 						}
 						else if( ScaledSample > 0.001f )
 						{
 							const float YCenter = Y + ( ( 2 * ChannelIndex ) + 1 ) * Height / ( 2.f * numChannels );
-							//LineItem.Draw( Canvas, FVector2D( X + XOffset, YCenter - ScaledSample ), FVector2D( X + XOffset, YCenter + ScaledSample ) );
+							GenerateLine( TriangleList, FVector2D( X + XOffset, YCenter - ScaledSample ), FVector2D( X + XOffset, YCenter + ScaledSample ) );
 						}
 					}
 				}
@@ -283,7 +298,7 @@ bool UWAVLibrary::GenerateWaveform( TArray<uint8>* WavPtr, UCustomMeshComponent*
 						if( XOffset > 0 )
 						{
 							const float YCenter = Y + 0.5f * Height;
-							//LineItem.Draw( Canvas, FVector2D( X + XOffset - 1, YCenter + LastScaledSample[0] ), FVector2D( X + XOffset, YCenter + ScaledSample ) );
+							GenerateLine( TriangleList, FVector2D( X + XOffset - 1, YCenter + LastScaledSample[0] ), FVector2D( X + XOffset, YCenter + ScaledSample ) );
 						}
 						LastScaledSample[0] = ScaledSample;
 					}
@@ -298,11 +313,12 @@ bool UWAVLibrary::GenerateWaveform( TArray<uint8>* WavPtr, UCustomMeshComponent*
 						if( MaxScaledSample > 0.001f )
 						{
 							const float YCenter = Y + 0.5f * Height;
-							//LineItem.Draw( Canvas, FVector2D( X + XOffset, YCenter - MaxScaledSample ), FVector2D( X + XOffset, YCenter + MaxScaledSample ) );
+							GenerateLine( TriangleList, FVector2D( X + XOffset, YCenter - MaxScaledSample ), FVector2D( X + XOffset, YCenter + MaxScaledSample ) );
 						}
 					}
 				}
 			}
+			InComponent->SetCustomMeshTriangles( TriangleList );
 		}
 	}
 	else if( bUseLog )
