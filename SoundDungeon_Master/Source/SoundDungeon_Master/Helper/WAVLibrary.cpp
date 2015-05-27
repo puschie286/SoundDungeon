@@ -192,24 +192,13 @@ bool UWAVLibrary::FinishedUsage( TArray<uint8>* WavPtr )
 	return false;
 }
 
-bool UWAVLibrary::GenerateWaveform( FName WAVName, UCustomMeshComponent* InComponent )
-{
-	return GenerateWaveform( GetWAV( WAVName ), InComponent );
-}
-
-bool UWAVLibrary::GenerateWaveform( TArray<uint8>* WavPtr, UCustomMeshComponent* InComponent )
+bool UWAVLibrary::GenerateWaveform( TArray<uint8>* WavPtr, UCustomMeshComponent* InComponent, bool DrawChannels, bool DrawAsCurve, uint32 Width, uint32 Height )
 {
 	if( WavPtr != NULL )
 	{
-		// coded parameter
-		int32 X = 0;
-		int32 Y = 0;
-		uint32 Width = 300;
-		uint32 Height = 100;
-
 		// Copy from ThumbnailRendering
-		bool bDrawChannels = true;
-		bool bDrawAsCurve = false;
+		bool bDrawChannels = DrawChannels;
+		bool bDrawAsCurve = DrawAsCurve;
 
 		uint8* RawWaveData = WavPtr->GetData();
 		int32 RawDataSize = WavPtr->Num();
@@ -218,7 +207,7 @@ bool UWAVLibrary::GenerateWaveform( TArray<uint8>* WavPtr, UCustomMeshComponent*
 		// parse the wave data
 		if( WaveInfo.ReadWaveHeader( RawWaveData, RawDataSize, 0 ) )
 		{
-			uint8 numChannels = 2; // SoundWave->NumChannels
+			uint8 numChannels = 1; // SoundWave->NumChannels
 			const float SampleYScale = Height / ( 2.f * 32767 * ( bDrawChannels ? numChannels : 1 ) );
 
 			int16* SamplePtr = reinterpret_cast<int16*>( WaveInfo.SampleDataStart );
@@ -254,10 +243,6 @@ bool UWAVLibrary::GenerateWaveform( TArray<uint8>* WavPtr, UCustomMeshComponent*
 						}
 					}
 				}
-				else if( bUseLog )
-				{
-					UE_LOG( LogTemp, Warning, TEXT( "Support only for 2 Channels" ) );
-				}
 				if( bDrawChannels )
 				{
 					for( int32 ChannelIndex = 0; ChannelIndex < numChannels; ++ChannelIndex )
@@ -267,15 +252,15 @@ bool UWAVLibrary::GenerateWaveform( TArray<uint8>* WavPtr, UCustomMeshComponent*
 						{
 							if( XOffset > 0 )
 							{
-								const float YCenter = Y + ( ( 2 * ChannelIndex ) + 1 ) * Height / ( 2.f * numChannels );
-								GenerateLine( TriangleList, FVector2D( X + XOffset - 1, YCenter + LastScaledSample[ChannelIndex] ), FVector2D( X + XOffset, YCenter + ScaledSample ) );
+								const float YCenter = ( ( 2 * ChannelIndex ) + 1 ) * Height / ( 2.f * numChannels );
+								GenerateLine( TriangleList, FVector2D( XOffset - 1, YCenter + LastScaledSample[ChannelIndex] ), FVector2D( XOffset, YCenter + ScaledSample ) );
 							}
 							LastScaledSample[ChannelIndex] = ScaledSample;
 						}
 						else if( ScaledSample > 0.001f )
 						{
-							const float YCenter = Y + ( ( 2 * ChannelIndex ) + 1 ) * Height / ( 2.f * numChannels );
-							GenerateLine( TriangleList, FVector2D( X + XOffset, YCenter - ScaledSample ), FVector2D( X + XOffset, YCenter + ScaledSample ) );
+							const float YCenter = ( ( 2 * ChannelIndex ) + 1 ) * Height / ( 2.f * numChannels );
+							GenerateLine( TriangleList, FVector2D( XOffset, YCenter - ScaledSample ), FVector2D( XOffset, YCenter + ScaledSample ) );
 						}
 					}
 				}
@@ -297,8 +282,8 @@ bool UWAVLibrary::GenerateWaveform( TArray<uint8>* WavPtr, UCustomMeshComponent*
 						const float ScaledSample = ( ActiveChannelCount > 0 ? ScaledSampleSum / ActiveChannelCount : 0.f );
 						if( XOffset > 0 )
 						{
-							const float YCenter = Y + 0.5f * Height;
-							GenerateLine( TriangleList, FVector2D( X + XOffset - 1, YCenter + LastScaledSample[0] ), FVector2D( X + XOffset, YCenter + ScaledSample ) );
+							const float YCenter = 0.5f * Height;
+							GenerateLine( TriangleList, FVector2D( XOffset - 1, YCenter + LastScaledSample[0] ), FVector2D( XOffset, YCenter + ScaledSample ) );
 						}
 						LastScaledSample[0] = ScaledSample;
 					}
@@ -312,8 +297,8 @@ bool UWAVLibrary::GenerateWaveform( TArray<uint8>* WavPtr, UCustomMeshComponent*
 						}
 						if( MaxScaledSample > 0.001f )
 						{
-							const float YCenter = Y + 0.5f * Height;
-							GenerateLine( TriangleList, FVector2D( X + XOffset, YCenter - MaxScaledSample ), FVector2D( X + XOffset, YCenter + MaxScaledSample ) );
+							const float YCenter = 0.5f * Height;
+							GenerateLine( TriangleList, FVector2D( XOffset, YCenter - MaxScaledSample ), FVector2D( XOffset, YCenter + MaxScaledSample ) );
 						}
 					}
 				}
@@ -327,6 +312,7 @@ bool UWAVLibrary::GenerateWaveform( TArray<uint8>* WavPtr, UCustomMeshComponent*
 	}
 	return false;
 }
+
 
 // Blueprint functions
 void UWAVLibrary::LIBLoadWAV( FString WAVName )
@@ -349,12 +335,12 @@ void UWAVLibrary::LIBGetWAV( FString WAVName, TArray<uint8>& OutData )
 	OutData = *GetInstance()->GetWAV( *( WAVName ) );
 }
 
-void UWAVLibrary::LIBGetWaveformFromData( TArray<uint8>& InData, UCustomMeshComponent* InComponent )
+void UWAVLibrary::LIBGetWaveform( FString WAVName, UCustomMeshComponent* InComponent, bool DrawChannels, bool DrawAsCurve, int32 Width, int32 Height )
 {
-	GetInstance()->GenerateWaveform( &InData, InComponent );
+	GetInstance()->GenerateWaveform( GetInstance()->GetWAV( *( WAVName ) ), InComponent, DrawChannels, DrawAsCurve, Width, Height );
 }
 
-void UWAVLibrary::LIBGetWaveform( FString WAVName, UCustomMeshComponent* InComponent )
+void UWAVLibrary::LIBGetWaveformFromData( TArray<uint8>& InData, UCustomMeshComponent* InComponent, bool DrawChannels, bool DrawAsCurve, int32 Width, int32 Height )
 {
-	GetInstance()->GenerateWaveform( *( WAVName ), InComponent );
+	GetInstance()->GenerateWaveform( &InData, InComponent, DrawChannels, DrawAsCurve, Width, Height );
 }
