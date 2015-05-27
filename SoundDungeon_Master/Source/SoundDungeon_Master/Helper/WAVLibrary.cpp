@@ -48,6 +48,25 @@ bool UWAVLibrary::CheckStorageContain( FName Name )
 	return false;
 }
 
+void UWAVLibrary::GenerateLine( TArray<FCustomMeshTriangle>& List, FVector2D StartPos, FVector2D EndPos, float Scale )
+{
+	FCustomMeshTriangle Triangle0, Triangle1;
+
+	float x0 = StartPos.X, x1 = EndPos.X;
+	float y0 = StartPos.Y, y1 = EndPos.Y;
+
+	Triangle0.Vertex0 = FVector( x0 + 0.f, y0 + 0.f, 0.f );
+	Triangle0.Vertex1 = FVector( x0 + 1.f * Scale, y0 + 0.f, 0.f );
+	Triangle0.Vertex2 = FVector( x1 + 0.f, y1 + 1.f * Scale, 0.f );
+
+	Triangle1.Vertex0 = FVector( x0 + 1.f * Scale, y0 + 0.f, 0.f );
+	Triangle1.Vertex1 = FVector( x1 + 1.f * Scale, y1 + 1.f * Scale, 0.f );
+	Triangle1.Vertex2 = FVector( x1 + 0.f, y1 + 1.f * Scale, 0.f );
+
+	List.Add( Triangle0 );
+	List.Add( Triangle1 );
+}
+
 bool UWAVLibrary::LoadWAV( FName WAVName )
 {
 	if( CheckFName( WAVName ) )
@@ -171,4 +190,171 @@ bool UWAVLibrary::FinishedUsage( TArray<uint8>* WavPtr )
 		UE_LOG( LogTemp, Warning, TEXT( "NULL Pointer" ) );
 	}
 	return false;
+}
+
+bool UWAVLibrary::GenerateWaveform( FName WAVName, UCustomMeshComponent* InComponent )
+{
+	return GenerateWaveform( GetWAV( WAVName ), InComponent );
+}
+
+bool UWAVLibrary::GenerateWaveform( TArray<uint8>* WavPtr, UCustomMeshComponent* InComponent )
+{
+	if( WavPtr != NULL )
+	{
+		// coded parameter
+		int32 X = 0;
+		int32 Y = 0;
+		uint32 Width = 300;
+		uint32 Height = 100;
+
+		// Copy from ThumbnailRendering
+		bool bDrawChannels = true;
+		bool bDrawAsCurve = false;
+
+		uint8* RawWaveData = WavPtr->GetData();
+		int32 RawDataSize = WavPtr->Num();
+		FWaveModInfo WaveInfo;
+
+		// parse the wave data
+		if( WaveInfo.ReadWaveHeader( RawWaveData, RawDataSize, 0 ) )
+		{
+			uint8 numChannels = 2; // SoundWave->NumChannels
+			const float SampleYScale = Height / ( 2.f * 32767 * ( bDrawChannels ? numChannels : 1 ) );
+
+			int16* SamplePtr = reinterpret_cast<int16*>( WaveInfo.SampleDataStart );
+
+			uint32 SampleCount = 0;
+			uint32 SampleCounts[10] = { 0 };
+
+			if( numChannels <= 2 )
+			{
+				SampleCount = WaveInfo.SampleDataSize / ( 2 * numChannels );
+			}
+			else if( bUseLog )
+			{
+				UE_LOG( LogTemp, Warning, TEXT( "Support only for 2 Channels" ) );
+			}
+			const uint32 SamplesPerX = ( SampleCount / Width ) + 1;
+			float LastScaledSample[10] = { 0.f };
+
+			TArray<FCustomMeshTriangle> TriangleList;
+
+			for( uint32 XOffset = 0; XOffset < Width - 1; ++XOffset )
+			{
+				int64 SampleSum[10] = { 0 };
+				if( numChannels <= 2 )
+				{
+					for( uint32 PerXSampleIndex = 0; PerXSampleIndex < SamplesPerX; ++PerXSampleIndex )
+					{
+						for( int32 ChannelIndex = 0; ChannelIndex < numChannels; ++ChannelIndex )
+						{
+							const int16 SampleValue = ( bDrawAsCurve ? *SamplePtr : FMath::Abs( *SamplePtr ) );
+							SampleSum[ChannelIndex] += SampleValue;
+							++SamplePtr;
+						}
+					}
+				}
+				else if( bUseLog )
+				{
+					UE_LOG( LogTemp, Warning, TEXT( "Support only for 2 Channels" ) );
+				}
+				if( bDrawChannels )
+				{
+					for( int32 ChannelIndex = 0; ChannelIndex < numChannels; ++ChannelIndex )
+					{
+						const float ScaledSample = SampleSum[ChannelIndex] / SamplesPerX * SampleYScale;
+						if( bDrawAsCurve )
+						{
+							if( XOffset > 0 )
+							{
+								const float YCenter = Y + ( ( 2 * ChannelIndex ) + 1 ) * Height / ( 2.f * numChannels );
+								GenerateLine( TriangleList, FVector2D( X + XOffset - 1, YCenter + LastScaledSample[ChannelIndex] ), FVector2D( X + XOffset, YCenter + ScaledSample ) );
+							}
+							LastScaledSample[ChannelIndex] = ScaledSample;
+						}
+						else if( ScaledSample > 0.001f )
+						{
+							const float YCenter = Y + ( ( 2 * ChannelIndex ) + 1 ) * Height / ( 2.f * numChannels );
+							GenerateLine( TriangleList, FVector2D( X + XOffset, YCenter - ScaledSample ), FVector2D( X + XOffset, YCenter + ScaledSample ) );
+						}
+					}
+				}
+				else
+				{
+					if( bDrawAsCurve )
+					{
+						float ScaledSampleSum = 0.f;
+						int32 ActiveChannelCount = 0;
+						for( int32 ChannelIndex = 0; ChannelIndex < numChannels; ++ChannelIndex )
+						{
+							const float ScaledSample = SampleSum[ChannelIndex] / SamplesPerX * SampleYScale;
+							if( FMath::Abs( ScaledSample ) > 0.001f )
+							{
+								ScaledSampleSum += ScaledSample;
+								++ActiveChannelCount;
+							}
+						}
+						const float ScaledSample = ( ActiveChannelCount > 0 ? ScaledSampleSum / ActiveChannelCount : 0.f );
+						if( XOffset > 0 )
+						{
+							const float YCenter = Y + 0.5f * Height;
+							GenerateLine( TriangleList, FVector2D( X + XOffset - 1, YCenter + LastScaledSample[0] ), FVector2D( X + XOffset, YCenter + ScaledSample ) );
+						}
+						LastScaledSample[0] = ScaledSample;
+					}
+					else
+					{
+						float MaxScaledSample = 0.f;
+						for( int32 ChannelIndex = 0; ChannelIndex < numChannels; ++ChannelIndex )
+						{
+							const float ScaledSample = SampleSum[ChannelIndex] / SamplesPerX * SampleYScale;
+							MaxScaledSample = FMath::Max( MaxScaledSample, ScaledSample );
+						}
+						if( MaxScaledSample > 0.001f )
+						{
+							const float YCenter = Y + 0.5f * Height;
+							GenerateLine( TriangleList, FVector2D( X + XOffset, YCenter - MaxScaledSample ), FVector2D( X + XOffset, YCenter + MaxScaledSample ) );
+						}
+					}
+				}
+			}
+			InComponent->SetCustomMeshTriangles( TriangleList );
+		}
+	}
+	else if( bUseLog )
+	{
+		UE_LOG( LogTemp, Warning, TEXT( "NULL Pointer" ) );
+	}
+	return false;
+}
+
+// Blueprint functions
+void UWAVLibrary::LIBLoadWAV( FString WAVName )
+{
+	GetInstance()->LoadWAV( *( WAVName ) );
+}
+
+void UWAVLibrary::LIBUnloadWAV( FString WAVName )
+{
+	GetInstance()->UnloadWAV( *( WAVName ) );
+}
+
+void UWAVLibrary::LIBFinishedUsage( FString WAVName )
+{
+	GetInstance()->FinishedUsage( *( WAVName ) );
+}
+
+void UWAVLibrary::LIBGetWAV( FString WAVName, TArray<uint8>& OutData )
+{
+	OutData = *GetInstance()->GetWAV( *( WAVName ) );
+}
+
+void UWAVLibrary::LIBGetWaveformFromData( TArray<uint8>& InData, UCustomMeshComponent* InComponent )
+{
+	GetInstance()->GenerateWaveform( &InData, InComponent );
+}
+
+void UWAVLibrary::LIBGetWaveform( FString WAVName, UCustomMeshComponent* InComponent )
+{
+	GetInstance()->GenerateWaveform( *( WAVName ), InComponent );
 }

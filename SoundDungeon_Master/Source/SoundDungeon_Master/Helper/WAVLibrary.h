@@ -5,13 +5,14 @@
 #include "Object.h"
 
 #include "Containers/Map.h"
+#include "CustomMeshComponent.h"
 
 #include "WAVLibrary.generated.h"
 
 /**
  * 
  */
-UCLASS()
+UCLASS( ClassGroup = ( Custom ), Meta = ( BlueprintSpawnableComponent ) )
 class SOUNDDUNGEON_MASTER_API UWAVLibrary : public UObject
 {
 	GENERATED_BODY()
@@ -28,6 +29,8 @@ private:
 
 	bool CheckStorageContain( FName Name );
 
+	void GenerateLine( TArray<FCustomMeshTriangle>& List, FVector2D StartPos, FVector2D EndPos, float Scale = 1.f );
+
 public:
 
 	static UWAVLibrary* GetInstance();
@@ -42,7 +45,31 @@ public:
 
 	bool FinishedUsage( TArray<uint8>* WavPtr );
 
+	bool GenerateWaveform( FName WAVName, UCustomMeshComponent* InComponent );
+
+	bool GenerateWaveform( TArray<uint8>* WavPtr, UCustomMeshComponent* InComponent );
+
+
 	bool bUseLog;
 
 	bool bUnloadWhenNotUsed;
+
+	// Blueprint functions
+	UFUNCTION( BlueprintCallable, Category = "SoundVisualize" )
+	static void LIBLoadWAV( FString WAVName );
+
+	UFUNCTION( BlueprintCallable, Category = "SoundVisualize" )
+	static void LIBUnloadWAV( FString WAVName );
+
+	UFUNCTION( BlueprintCallable, Category = "SoundVisualize" )
+	static void LIBFinishedUsage( FString WAVName );
+
+	UFUNCTION( BlueprintCallable, Category = "SoundVisualize" )
+	static void LIBGetWAV( FString WAVName, TArray<uint8>& OutData );
+
+	UFUNCTION( BlueprintCallable, Category = "SoundVisualize" )
+	static void LIBGetWaveform( FString WAVName, UCustomMeshComponent* InComponent );
+
+	UFUNCTION( BlueprintCallable, Category = "SoundVisualize" )
+	static void LIBGetWaveformFromData( TArray<uint8>& InData, UCustomMeshComponent* InComponent );
 };
