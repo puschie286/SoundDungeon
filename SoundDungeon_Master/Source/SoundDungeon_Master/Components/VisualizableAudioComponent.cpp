@@ -64,7 +64,7 @@ void UVisualizableAudioComponent::LoadData( FString File )
 		}
 
 		bool FileLoaded = pWavLib->LoadWAV( FileName );
-		
+
 		if( FileLoaded )
 		{
 			wavData = pWavLib->GetWAV( FileName );
@@ -76,7 +76,7 @@ void UVisualizableAudioComponent::LoadData( FString File )
 			wavData = nullptr;
 			UE_LOG( LogTemp, Warning, TEXT( "AudioData loading failed : %s " ), *( FileName.ToString() ) );
 		}
-	} 
+	}
 	else
 	{
 		UE_LOG( LogTemp, Warning, TEXT( "No Sound selected" ) );
