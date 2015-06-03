@@ -334,7 +334,7 @@ bool UWAVLibrary::GenerateWaveform( TArray<uint8>* WavPtr, UCustomMeshComponent*
 	}
 	return false;
 }
-/*
+
 void UWAVLibrary::CalculateFrequencySpectrum( const bool bSplitChannels, const float StartTime, const float TimeLength, const int32 SpectrumWidth, TArray<uint8>* InWavPtr, TArray<TArray<float>> &OutSpectrum )
 {
 	OutSpectrum.Empty();
@@ -507,7 +507,7 @@ void UWAVLibrary::CalculateFrequencySpectrum( const bool bSplitChannels, const f
 		UE_LOG( LogTemp, Warning, TEXT( "WAV Data is NULL" ) );
 	}
 }
-*/
+
 void UWAVLibrary::GetAmplitude( const bool bSplitChannels, const float StartTime, const float TimeLength, const int32 AmplitudeBuckets, TArray<uint8>* InWavPtr, TArray<TArray<float>>& OutAmplitudes )
 {
 	OutAmplitudes.Empty();
@@ -626,7 +626,7 @@ void UWAVLibrary::LIBGenerateWaveform( TArray<uint8>& InData, UCustomMeshCompone
 {
 	GetInstance()->GenerateWaveform( &InData, InComponent, DrawChannels, DrawAsCurve, Width, Height );
 }
-/*
+
 void UWAVLibrary::LIBCalculateFrequencySpectrum( int32 Channel, float StartTime, float TimeLength, int32 SpectrumWidth, TArray<uint8>& InData, TArray<float> &OutSpectrum )
 {
 	OutSpectrum.Empty();
@@ -640,6 +640,11 @@ void UWAVLibrary::LIBCalculateFrequencySpectrum( int32 Channel, float StartTime,
 	{
 		UE_LOG( LogTemp, Warning, TEXT( "Adjust Channel from %i to 2" ), Channel );
 		Channel = 2;
+	}
+	if( StartTime <= 0.f )
+	{
+		UE_LOG( LogTemp, Warning, TEXT("") );
+		StartTime = 0.01f;
 	}
 	// Call
 	TArray<TArray<float>> Spectrums;
@@ -658,7 +663,7 @@ void UWAVLibrary::LIBCalculateFrequencySpectrum( int32 Channel, float StartTime,
 		}
 	}
 }
-*/
+
 void UWAVLibrary::LIBGetAmplitude( int32 Channel, float StartTime, float TimeLength, int32 AmplitudeBuckets, TArray<uint8>& InData, TArray<float> &OutAmplitudes )
 {
 	OutAmplitudes.Empty();
@@ -687,3 +692,34 @@ void UWAVLibrary::LIBGetAmplitude( int32 Channel, float StartTime, float TimeLen
 	}
 }
 
+void UWAVLibrary::LIBScaleAddValue( UPARAM( ref ) FScaling& Scale, const float Value )
+{
+	Scale.AddValue( Value );
+}
+
+void UWAVLibrary::LIBScaleGetScaled( UPARAM( ref ) FScaling& Scale, const float Value, float& ScaledValue )
+{
+	Scale.GetScaled( Value, ScaledValue );
+}
+
+void UWAVLibrary::LIBArrayMultiply( const TArray<float>& FirstArray, const TArray<float>& SecondArray, TArray<float>& ResultArray )
+{
+	int32 ArraySize = FirstArray.Num();
+
+	if( ArraySize == SecondArray.Num() )
+	{
+		if( ResultArray.Num() != ArraySize )
+		{
+			ResultArray.SetNum( ArraySize );
+		}
+
+		for( int32 i = 0; i < ArraySize; ++i )
+		{
+			ResultArray[i] = FirstArray[i] * SecondArray[i];
+		}
+	}
+	else
+	{
+		UE_LOG( LogTemp, Warning, TEXT( "Cant multiply Arrays - Different Size" ) );
+	}
+}
