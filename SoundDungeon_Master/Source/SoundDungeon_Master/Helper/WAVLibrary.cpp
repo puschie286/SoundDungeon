@@ -592,6 +592,18 @@ void UWAVLibrary::GetAmplitude( const bool bSplitChannels, const float StartTime
 	}
 }
 
+void UWAVLibrary::GetShare( TArray<float> *SharedData ) const
+{
+	if( SharedData != NULL )
+	{
+		ShareData = SharedData;
+	}
+}
+
+void UWAVLibrary::SetShare( TArray<float> *SharedData )
+{
+	ShareData = SharedData;
+}
 
 // Blueprint functions
 void UWAVLibrary::LIBLoadWAV( FString WAVName )
@@ -700,6 +712,16 @@ void UWAVLibrary::LIBScaleAddValue( UPARAM( ref ) FScaling& Scale, const float V
 void UWAVLibrary::LIBScaleGetScaled( UPARAM( ref ) FScaling& Scale, const float Value, float& ScaledValue )
 {
 	Scale.GetScaled( Value, ScaledValue );
+}
+
+void UWAVLibrary::LIBSetShare( UPARAM( ref ) TArray<float>& DataToStore )
+{
+	GetInstance()->GetShare( &DataToStore );
+}
+
+void UWAVLibrary::LIBGetShare( TArray<float>& StoredData )
+{
+	GetInstance()->SetShare( &StoredData );
 }
 
 void UWAVLibrary::LIBArrayMultiply( const TArray<float>& FirstArray, const TArray<float>& SecondArray, TArray<float>& ResultArray )
