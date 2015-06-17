@@ -33,6 +33,7 @@ UWAVLibrary::UWAVLibrary()
 	this->AddToRoot();
 	bUseLog = true;
 	bUnloadWhenNotUsed = false;
+	ShareData = nullptr;
 	Path = FPaths::GameDir() + "Content\\AudioFiles\\";
 }
 
@@ -592,7 +593,7 @@ void UWAVLibrary::GetAmplitude( const bool bSplitChannels, const float StartTime
 	}
 }
 
-void UWAVLibrary::GetShare( TArray<float> *SharedData ) const
+void UWAVLibrary::GetShare( TArray<float> *SharedData )
 {
 	if( SharedData != NULL )
 	{
@@ -716,12 +717,12 @@ void UWAVLibrary::LIBScaleGetScaled( UPARAM( ref ) FScaling& Scale, const float 
 
 void UWAVLibrary::LIBSetShare( UPARAM( ref ) TArray<float>& DataToStore )
 {
-	GetInstance()->GetShare( &DataToStore );
+	GetInstance()->SetShare( &DataToStore );
 }
 
 void UWAVLibrary::LIBGetShare( TArray<float>& StoredData )
 {
-	GetInstance()->SetShare( &StoredData );
+	GetInstance()->GetShare( &StoredData );
 }
 
 void UWAVLibrary::LIBArrayMultiply( const TArray<float>& FirstArray, const TArray<float>& SecondArray, TArray<float>& ResultArray )

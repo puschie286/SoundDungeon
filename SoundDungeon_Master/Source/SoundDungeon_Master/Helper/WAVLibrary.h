@@ -209,7 +209,7 @@ public:
 
 	void GetAmplitude( const bool bSplitChannels, const float StartTime, const float TimeLength, const int32 AmplitudeBuckets, TArray<uint8>* InWavPtr, TArray<TArray<float>>& OutAmplitudes );
 
-	void GetShare( TArray<float> *SharedData ) const;
+	void GetShare( TArray<float> *SharedData );
 
 	void SetShare( TArray<float> *SharedData );
 
