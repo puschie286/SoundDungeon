@@ -66,7 +66,15 @@ struct FScaling
 
 		if( bUseMinMaxValue )
 		{
-			if( Value >= MinValue && Value <= MaxValue )
+			if( Value <= MinValue )
+			{
+				SetValue( MinValue );
+			}
+			else if( Value >= MaxValue )
+			{
+				SetValue( MaxValue );
+			}
+			else
 			{
 				SetValue( Value );
 			}
@@ -181,6 +189,8 @@ private:
 
 	FString Path;
 
+	TArray<TArray<float>> ShareStorage;
+
 	bool CheckFName( FName Name );
 
 	bool CheckStorageContain( FName Name );
@@ -206,6 +216,12 @@ public:
 	void CalculateFrequencySpectrum( const bool bSplitChannels, const float StartTime, const float TimeLength, const int32 SpectrumWidth, TArray<uint8>* InWavPtr, TArray<TArray<float>> &OutSpectrum );
 
 	void GetAmplitude( const bool bSplitChannels, const float StartTime, const float TimeLength, const int32 AmplitudeBuckets, TArray<uint8>* InWavPtr, TArray<TArray<float>>& OutAmplitudes );
+
+	void ClearShareData( const int32 NewSize = 0 );
+
+	void GetShare( TArray<float>& OutData, const int32 Slot = 0 );
+
+	void SetShare( const TArray<float>& InData, const int32 Slot = 0);
 
 	bool bUseLog;
 
@@ -255,11 +271,15 @@ public:
 	UFUNCTION( BlueprintCallable, Category = "Scaling" )
 	static void LIBScaleGetScaled( UPARAM( ref ) FScaling& Scale, const float Value, float& ScaledValue );
 
-	/* TODO : Share Result Storage ?
-	static void LIBSetShare( UPARAM( ref ) TArray<float>& DataToStore );
+	UFUNCTION( BlueprintCallable, Category = "SoundVisualize" )
+	static void LIBClearShareStorage( const int32 NewSize = 0 );
 
-	static void LIBGetShare( TArray<float>& StoredData );
-	*/
+	UFUNCTION( BlueprintCallable, Category = "SoundVisualize" )
+	static void LIBSetShare( UPARAM( ref ) TArray<float>& DataToStore, const int32 Slot = 0 );
+
+	UFUNCTION( BlueprintCallable, Category = "SoundVisualize" )
+	static void LIBGetShare( TArray<float>& StoredData, const int32 Slot = 0 );
+
 	UFUNCTION( BlueprintCallable, Category = "Helper" )
 	static void LIBArrayMultiply( const TArray<float>& FirstArray, const TArray<float>& SecondArray, TArray<float>& ResultArray );
 };

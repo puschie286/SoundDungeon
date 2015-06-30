@@ -34,6 +34,7 @@ UWAVLibrary::UWAVLibrary()
 	bUseLog = true;
 	bUnloadWhenNotUsed = false;
 	Path = FPaths::GameDir() + "Content\\AudioFiles\\";
+	ShareStorage.SetNum( 5 );
 }
 
 UWAVLibrary* UWAVLibrary::GetInstance()
@@ -593,6 +594,31 @@ void UWAVLibrary::GetAmplitude( const bool bSplitChannels, const float StartTime
 }
 
 
+void UWAVLibrary::ClearShareData( const int32 NewSize /*= 0 */ )
+{
+	ShareStorage.Empty( NewSize );
+}
+
+void UWAVLibrary::GetShare( TArray<float>& OutData, const int32 Slot /*= 0 */ )
+{
+	if( ShareStorage.Num() > Slot )
+	{
+		OutData = ShareStorage[Slot];
+	}
+}
+
+void UWAVLibrary::SetShare( const TArray<float>& InData, const int32 Slot /*= 0 */ )
+{
+	if( ShareStorage.Num() > Slot )
+	{
+		ShareStorage[Slot] = InData;
+	}
+	else
+	{
+		ShareStorage.Insert( InData, Slot );
+	}
+}
+
 // Blueprint functions
 void UWAVLibrary::LIBLoadWAV( FString WAVName )
 {
@@ -700,6 +726,21 @@ void UWAVLibrary::LIBScaleAddValue( UPARAM( ref ) FScaling& Scale, const float V
 void UWAVLibrary::LIBScaleGetScaled( UPARAM( ref ) FScaling& Scale, const float Value, float& ScaledValue )
 {
 	Scale.GetScaled( Value, ScaledValue );
+}
+
+void UWAVLibrary::LIBClearShareStorage( const int32 NewSize )
+{
+	GetInstance()->ClearShareData( NewSize );
+}
+
+void UWAVLibrary::LIBSetShare( UPARAM( ref ) TArray<float>& DataToStore, const int32 Slot /*= 0 */ )
+{
+	GetInstance()->SetShare( DataToStore, Slot );
+}
+
+void UWAVLibrary::LIBGetShare( TArray<float>& StoredData, const int32 Slot /*= 0 */ )
+{
+	GetInstance()->GetShare( StoredData, Slot );
 }
 
 void UWAVLibrary::LIBArrayMultiply( const TArray<float>& FirstArray, const TArray<float>& SecondArray, TArray<float>& ResultArray )
