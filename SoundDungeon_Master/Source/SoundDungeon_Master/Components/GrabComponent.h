@@ -44,8 +44,9 @@ public:
 	UFUNCTION( BlueprintPure, Category = "Grab" )
 	bool HasGrabedObject();
 
-protected:
-
-	class UPhysicsHandleComponent* PhysicHandle;
+	UPROPERTY( VisibleAnywhere, BlueprintReadOnly, Category = Gameplay )
 	class AActor* GrabedTarget;
+
+protected:
+	class UPhysicsHandleComponent* PhysicHandle;
 };
