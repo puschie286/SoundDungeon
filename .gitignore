@@ -13,6 +13,7 @@
 *.opensdf
 *.sdf
 *.sln
+*.log
 
 # Compiled Object files
 *.slo

@@ -34,5 +34,20 @@ public:
 	UPROPERTY( VisibleAnywhere, BlueprintReadOnly, Category = "SoundVisualize" )
 	float PlayTime;
 
+	UFUNCTION( BlueprintImplementableEvent, Category = "SoundVisualize" )
+	void OnSoundPlay();
+
+	UFUNCTION( BlueprintImplementableEvent, Category = "SoundVisualize" )
+	void OnSoundStop();
+
+	UFUNCTION( BlueprintImplementableEvent, Category = "SoundVisualize" )
+	void OnSoundEnd();
+
+	UFUNCTION( BlueprintImplementableEvent, Category = "SoundVisualize" )
+	void OnSoundPause();
+
+	UFUNCTION( BlueprintImplementableEvent, Category = "SoundVisualize" )
+	void OnSoundUnpause();
+
 	void TickComponent( float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction );
 };

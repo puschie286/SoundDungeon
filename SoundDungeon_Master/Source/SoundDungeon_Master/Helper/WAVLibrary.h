@@ -66,7 +66,15 @@ struct FScaling
 
 		if( bUseMinMaxValue )
 		{
-			if( Value >= MinValue && Value <= MaxValue )
+			if( Value <= MinValue )
+			{
+				SetValue( MinValue );
+			}
+			else if( Value >= MaxValue )
+			{
+				SetValue( MaxValue );
+			}
+			else
 			{
 				SetValue( Value );
 			}
@@ -181,7 +189,11 @@ private:
 
 	FString Path;
 
+<<<<<<< HEAD
 	TArray<float>* ShareData;
+=======
+	TArray<TArray<float>> ShareStorage;
+>>>>>>> Producer_Dev
 
 	bool CheckFName( FName Name );
 
@@ -209,9 +221,17 @@ public:
 
 	void GetAmplitude( const bool bSplitChannels, const float StartTime, const float TimeLength, const int32 AmplitudeBuckets, TArray<uint8>* InWavPtr, TArray<TArray<float>>& OutAmplitudes );
 
+<<<<<<< HEAD
 	void GetShare( TArray<float> *SharedData );
 
 	void SetShare( TArray<float> *SharedData );
+=======
+	void ClearShareData( const int32 NewSize = 0 );
+
+	void GetShare( TArray<float>& OutData, const int32 Slot = 0 );
+
+	void SetShare( const TArray<float>& InData, const int32 Slot = 0);
+>>>>>>> Producer_Dev
 
 	bool bUseLog;
 
@@ -262,11 +282,22 @@ public:
 	static void LIBScaleGetScaled( UPARAM( ref ) FScaling& Scale, const float Value, float& ScaledValue );
 
 	UFUNCTION( BlueprintCallable, Category = "SoundVisualize" )
+<<<<<<< HEAD
 	static void LIBSetShare( UPARAM( ref ) TArray<float>& DataToStore );
 
 	UFUNCTION( BlueprintCallable, Category = "SoundVisualize" )
 	static void LIBGetShare( TArray<float>& StoredData );
 
+=======
+	static void LIBClearShareStorage( const int32 NewSize = 0 );
+
+	UFUNCTION( BlueprintCallable, Category = "SoundVisualize" )
+	static void LIBSetShare( UPARAM( ref ) TArray<float>& DataToStore, const int32 Slot = 0 );
+
+	UFUNCTION( BlueprintCallable, Category = "SoundVisualize" )
+	static void LIBGetShare( TArray<float>& StoredData, const int32 Slot = 0 );
+
+>>>>>>> Producer_Dev
 	UFUNCTION( BlueprintCallable, Category = "Helper" )
 	static void LIBArrayMultiply( const TArray<float>& FirstArray, const TArray<float>& SecondArray, TArray<float>& ResultArray );
 };

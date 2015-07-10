@@ -18,6 +18,7 @@ void UExtendedAudioComponent::PlaySound( float StartTime )
 	{
 		if( StartTime >= 0.f && StartTime < Sound->Duration )
 		{
+			this->OnSoundPlay();
 			this->PlayTime = StartTime;
 			this->Play( StartTime );
 		}
@@ -28,6 +29,7 @@ void UExtendedAudioComponent::StopSound()
 {
 	if( Sound )
 	{
+		this->OnSoundStop();
 		this->PlayTime = 0.f;
 		this->Stop();
 	}
@@ -37,6 +39,7 @@ void UExtendedAudioComponent::PauseSound()
 {
 	if( Sound )
 	{
+		this->OnSoundPause();
 		this->Stop();
 	}
 }
@@ -47,6 +50,7 @@ void UExtendedAudioComponent::UnpauseSound()
 	{
 		if( this->PlayTime >= 0.f && this->PlayTime < Sound->Duration )
 		{
+			this->OnSoundUnpause();
 			this->Play( this->PlayTime );
 		}
 	}
@@ -59,5 +63,9 @@ void UExtendedAudioComponent::TickComponent( float DeltaTime, enum ELevelTick Ti
 	if( this->IsPlaying() )
 	{
 		this->PlayTime += DeltaTime;
+		if( this->PlayTime > Sound->Duration )
+		{
+			this->OnSoundEnd();
+		}
 	}
 }
