@@ -33,7 +33,6 @@ UWAVLibrary::UWAVLibrary()
 	this->AddToRoot();
 	bUseLog = true;
 	bUnloadWhenNotUsed = false;
-	ShareData = nullptr;
 	Path = FPaths::GameDir() + "Content\\AudioFiles\\";
 	ShareStorage.SetNum( 5 );
 }
@@ -594,19 +593,6 @@ void UWAVLibrary::GetAmplitude( const bool bSplitChannels, const float StartTime
 	}
 }
 
-void UWAVLibrary::GetShare( TArray<float> *SharedData )
-{
-	if( SharedData != NULL )
-	{
-		ShareData = SharedData;
-	}
-}
-
-void UWAVLibrary::SetShare( TArray<float> *SharedData )
-{
-	ShareData = SharedData;
-}
-
 void UWAVLibrary::ClearShareData( const int32 NewSize /*= 0 */ )
 {
 	ShareStorage.Empty( NewSize );
@@ -629,6 +615,34 @@ void UWAVLibrary::SetShare( const TArray<float>& InData, const int32 Slot /*= 0 
 	else
 	{
 		ShareStorage.Insert( InData, Slot );
+	}
+}
+
+void UWAVLibrary::CalculateWAVData( int32 Channel, float StartTime, float TimeLength, int32 SpectrumWidth, FString WAVName, int32 Slot )
+{
+	bool WAVLoaded = true;
+	if( !IsLoadedWAV( *( WAVName ) ) )
+	{
+		WAVLoaded = LoadWAV( *( WAVName ) );
+	}
+	if( WAVLoaded )
+	{
+		TArray<uint8> *WAVData = GetWAV( *( WAVName ) );
+		TArray<float> *SlotData = &ShareStorage[Slot];
+		TArray<float> Data0, Data1;
+
+		LIBCalculateFrequencySpectrum( Channel, StartTime, TimeLength, SpectrumWidth, *WAVData, Data0 );
+		LIBGetAmplitude( Channel, StartTime, TimeLength, SpectrumWidth, *WAVData, Data1 );
+
+		if( SlotData->Num() < SpectrumWidth )
+		{
+			SlotData->SetNum( SpectrumWidth );
+		}
+
+		for( int32 i = 0; i < SpectrumWidth; ++i )
+		{
+			SlotData->Insert( Data0[i] * Data1[i], i );
+		}
 	}
 }
 
@@ -682,7 +696,7 @@ void UWAVLibrary::LIBCalculateFrequencySpectrum( int32 Channel, float StartTime,
 	}
 	if( StartTime <= 0.f )
 	{
-		UE_LOG( LogTemp, Warning, TEXT("") );
+		UE_LOG( LogTemp, Warning, TEXT("Adjust StartTime from %d to 0.01"), StartTime );
 		StartTime = 0.01f;
 	}
 	// Call
@@ -741,16 +755,6 @@ void UWAVLibrary::LIBScaleGetScaled( UPARAM( ref ) FScaling& Scale, const float 
 	Scale.GetScaled( Value, ScaledValue );
 }
 
-<<<<<<< HEAD
-void UWAVLibrary::LIBSetShare( UPARAM( ref ) TArray<float>& DataToStore )
-{
-	GetInstance()->SetShare( &DataToStore );
-}
-
-void UWAVLibrary::LIBGetShare( TArray<float>& StoredData )
-{
-	GetInstance()->GetShare( &StoredData );
-=======
 void UWAVLibrary::LIBClearShareStorage( const int32 NewSize )
 {
 	GetInstance()->ClearShareData( NewSize );
@@ -764,7 +768,6 @@ void UWAVLibrary::LIBSetShare( UPARAM( ref ) TArray<float>& DataToStore, const i
 void UWAVLibrary::LIBGetShare( TArray<float>& StoredData, const int32 Slot /*= 0 */ )
 {
 	GetInstance()->GetShare( StoredData, Slot );
->>>>>>> Producer_Dev
 }
 
 void UWAVLibrary::LIBArrayMultiply( const TArray<float>& FirstArray, const TArray<float>& SecondArray, TArray<float>& ResultArray )
@@ -787,4 +790,9 @@ void UWAVLibrary::LIBArrayMultiply( const TArray<float>& FirstArray, const TArra
 	{
 		UE_LOG( LogTemp, Warning, TEXT( "Cant multiply Arrays - Different Size" ) );
 	}
+}
+
+void UWAVLibrary::LIBCalculateWAVData( int32 Channel, float StartTime, float TimeLength, int32 SpectrumWidth, FString WAVName, int32 Slot )
+{
+	GetInstance()->CalculateWAVData( Channel, StartTime, TimeLength, SpectrumWidth, WAVName, Slot );
 }
