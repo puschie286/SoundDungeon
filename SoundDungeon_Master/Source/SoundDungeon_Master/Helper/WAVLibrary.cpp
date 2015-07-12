@@ -618,6 +618,18 @@ void UWAVLibrary::SetShare( const TArray<float>& InData, const int32 Slot /*= 0 
 	}
 }
 
+void UWAVLibrary::GetShareSingle( float& Out, const int32 Slot, const int32 Index )
+{
+	Out = -1;
+	if( ShareStorage.Num() > Slot )
+	{
+		if( ShareStorage[Slot].Num() > Index )
+		{
+			Out = ShareStorage[Slot][Index];
+		}
+	}
+}
+
 void UWAVLibrary::CalculateWAVData( int32 Channel, float StartTime, float TimeLength, int32 SpectrumWidth, FString WAVName, int32 Slot )
 {
 	bool WAVLoaded = true;
@@ -770,6 +782,11 @@ void UWAVLibrary::LIBGetShare( TArray<float>& StoredData, const int32 Slot /*= 0
 	GetInstance()->GetShare( StoredData, Slot );
 }
 
+void UWAVLibrary::LIBGetShareSingle( float& Out, const int32 Slot, const int32 Index )
+{
+	GetInstance()->GetShareSingle( Out, Slot, Index );
+}
+
 void UWAVLibrary::LIBArrayMultiply( const TArray<float>& FirstArray, const TArray<float>& SecondArray, TArray<float>& ResultArray )
 {
 	int32 ArraySize = FirstArray.Num();
@@ -790,6 +807,11 @@ void UWAVLibrary::LIBArrayMultiply( const TArray<float>& FirstArray, const TArra
 	{
 		UE_LOG( LogTemp, Warning, TEXT( "Cant multiply Arrays - Different Size" ) );
 	}
+}
+
+void UWAVLibrary::LIBNormalized( const float Value, float &NormalizedValue, const float MinScale, const float MaxScale, const float MinValue, const float MaxValue )
+{
+	NormalizedValue = ( ( Value + ( 0 - MinValue ) ) / ( MaxValue + ( 0 - MinValue ) ) ) * ( MaxScale + ( 0 - MinScale ) ) - ( 0 - MinScale );
 }
 
 void UWAVLibrary::LIBCalculateWAVData( int32 Channel, float StartTime, float TimeLength, int32 SpectrumWidth, FString WAVName, int32 Slot )

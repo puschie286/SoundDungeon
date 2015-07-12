@@ -225,6 +225,8 @@ public:
 
 	void CalculateWAVData( int32 Channel, float StartTime, float TimeLength, int32 SpectrumWidth, FString WAVName, int32 Slot );
 
+	void GetShareSingle( float& Out, const int32 Slot = 0, const int32 Index = 5 ); // Out == -1 On Faile
+
 	bool bUseLog;
 
 	bool bUnloadWhenNotUsed;
@@ -283,7 +285,13 @@ public:
 	static void LIBGetShare( TArray<float>& StoredData, const int32 Slot = 0 );
 
 	UFUNCTION( BlueprintCallable, Category = "Helper" )
+	static void LIBGetShareSingle( float& Out, const int32 Slot = 0, const int32 Index = 5 );
+
+	UFUNCTION( BlueprintCallable, Category = "Helper" )
 	static void LIBArrayMultiply( const TArray<float>& FirstArray, const TArray<float>& SecondArray, TArray<float>& ResultArray );
+
+	UFUNCTION( BlueprintCallable, Category = "Helper" )
+	static void LIBNormalized( const float Value, float &NormalizedValue, const float ScaleMin = 0.f, const float ScaleMax = 1.f, const float Min = 0.f, const float Max = 100.f );
 
 	UFUNCTION( BlueprintCallable, Category = "SoundVisualize" )
 	static void LIBCalculateWAVData( int32 Channel, float StartTime, float TimeLength, int32 SpectrumWidth, FString WAVName, int32 Slot );
