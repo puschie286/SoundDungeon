@@ -646,7 +646,7 @@ void UWAVLibrary::CalculateWAVData( int32 Channel, float StartTime, float TimeLe
 		LIBCalculateFrequencySpectrum( Channel, StartTime, TimeLength, SpectrumWidth, *WAVData, Data0 );
 		LIBGetAmplitude( Channel, StartTime, TimeLength, SpectrumWidth, *WAVData, Data1 );
 
-		if( SlotData->Num() < SpectrumWidth )
+		if( SlotData->Num() != SpectrumWidth )
 		{
 			SlotData->SetNum( SpectrumWidth );
 		}
