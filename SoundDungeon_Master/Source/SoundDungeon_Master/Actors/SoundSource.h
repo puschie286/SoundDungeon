@@ -34,6 +34,12 @@ public:
 	UFUNCTION( BlueprintPure, Category = "SoundSource" )
 	void GetSoundString( FString &SoundName );
 
+	UFUNCTION( BlueprintCallable, Category = "SoundSource" )
+	void GetAccurratPlayTime( double& PlaybackTime );
+
+	UFUNCTION( BlueprintCallable, Category = "SoundSource" )
+	void SyncTimer();
+
 	void Tick( float DeltaTime );
 	// Events
 
@@ -61,4 +67,9 @@ public:
 	bool GetReferencedContentObjects( TArray<UObject*>& Objects ) const;
 
 	void PostRegisterAllComponents();
+private:
+
+	double StartStamp;
+	double LastUpdateStamp;
+	float Duration;
 };

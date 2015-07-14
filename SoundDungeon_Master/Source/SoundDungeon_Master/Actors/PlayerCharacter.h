@@ -27,9 +27,6 @@ public:
 	
 	// Called every frame
 	virtual void Tick( float DeltaSeconds ) override;
-
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent( class UInputComponent* InputComponent ) override;
 	
 public:
 	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = Default )
@@ -57,7 +54,19 @@ public:
 	AActor* GrabedTarget;
 
 	UPROPERTY( VisibleInstanceOnly, BlueprintReadOnly, Category = Default )
+	AActor* Target;
+
+	UPROPERTY( VisibleInstanceOnly, BlueprintReadOnly, Category = Default )
 	EInteractionRangeState RangeCheckState;
+
+	UPROPERTY( VisibleAnywhere, BlueprintReadOnly, Category = Default )
+	float TurnRate;
+
+	UPROPERTY( VisibleAnywhere, BlueprintReadOnly, Category = Default )
+	float LookRate;
+
+	UPROPERTY( VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = ( AllowPrivateAccess = "true" ) )
+	class UCameraComponent* CameraComponent;
 
 private:
 	uint32 CheckCounter;
@@ -71,13 +80,22 @@ public:
 	void ReleaseObject();
 
 	UFUNCTION( BlueprintCallable, Category = "Character" )
+	void ActionObject();
+
+	UFUNCTION( BlueprintCallable, Category = "Character" )
 	void InteractObject();
+
+	UFUNCTION( BlueprintCallable, Category = "Character" )
+	void RangeCheck();
 
 	UFUNCTION( BlueprintImplementableEvent, Category = "Character" )
 	virtual void OnRangeCheckChange( EInteractionRangeState NewState );
 
-private:
-	void RangeCheck();
+	FORCEINLINE class UCameraComponent* GetCameraComponent() const
+	{
+		return CameraComponent;
+	}
 
+private:
 	AActor* RangeRaycast( float Range );
 };

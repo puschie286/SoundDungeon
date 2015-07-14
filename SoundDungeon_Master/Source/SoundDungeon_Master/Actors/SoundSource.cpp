@@ -9,13 +9,21 @@ ASoundSource::ASoundSource( const FObjectInitializer &ObjectInitializer )
 	//PrimaryActorTick.bStartWithTickEnabled = true;
 
 	PlayTime = 0.f;
+	StartStamp = 0.0;
+	LastUpdateStamp = 0.0;
+	Duration = 0.f;
 }
 
 void ASoundSource::PlaySound( float StartTime /*= 0.f */ )
 {
 	GetAudioComponent()->Play( StartTime );
-	PlayTime = StartTime;
-	if( StartTime == 0.f )
+	Duration = ( (USoundWave*)( GetAudioComponent()->Sound ) )->Duration;
+
+	StartStamp = FPlatformTime::Seconds() - FMath::Max( 0.f, StartTime );
+	LastUpdateStamp = StartStamp;
+	PlayTime = FMath::Max( 0.f, StartTime );
+	
+	if( StartTime <= 0.f )
 	{
 		OnSoundStart();
 	}
@@ -25,19 +33,32 @@ void ASoundSource::PlaySound( float StartTime /*= 0.f */ )
 void ASoundSource::StopSound()
 {
 	GetAudioComponent()->Stop();
+
+	StartStamp = 0.0;
+	LastUpdateStamp = 0.0;
 	PlayTime = 0.f;
+
 	OnSoundStop();
 }
 
 void ASoundSource::PauseSound()
 {
 	GetAudioComponent()->Stop();
+
+	LastUpdateStamp = FPlatformTime::Seconds();
+	
 	OnSoundPause();
 }
 
 void ASoundSource::UnpauseSound()
 {
 	GetAudioComponent()->Play( PlayTime );
+
+	if( LastUpdateStamp > 0 )
+	{
+		StartStamp += FPlatformTime::Seconds() - LastUpdateStamp;
+	}
+
 	OnSoundUnpause();
 }
 
@@ -51,15 +72,33 @@ void ASoundSource::GetSoundString( FString &SoundName )
 	}
 }
 
+void ASoundSource::GetAccurratPlayTime( double& PlaybackTime )
+{
+	PlaybackTime = FPlatformTime::Seconds() - StartStamp;
+}
+
+void ASoundSource::SyncTimer()
+{
+	if( GetAudioComponent()->IsPlaying() )
+	{
+		LastUpdateStamp = FPlatformTime::Seconds();
+		PlayTime = LastUpdateStamp - StartStamp;
+	}
+}
+
 void ASoundSource::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
 
 	if( GetAudioComponent()->IsPlaying() )
 	{
-		PlayTime += DeltaTime;
-		if( PlayTime >= ( (USoundWave*)( GetAudioComponent()->Sound ) )->Duration )
+		PlayTime += FPlatformTime::Seconds() - LastUpdateStamp;
+		LastUpdateStamp = FPlatformTime::Seconds();
+
+		if( PlayTime + DeltaTime >= Duration )
 		{
+			LastUpdateStamp = 0.0;
+			StartStamp = 0.0;
 			OnSoundEnd();
 		}
 	}
