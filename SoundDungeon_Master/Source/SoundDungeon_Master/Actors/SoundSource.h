@@ -35,7 +35,7 @@ public:
 	void GetSoundString( FString &SoundName );
 
 	UFUNCTION( BlueprintCallable, Category = "SoundSource" )
-	void GetAccurratPlayTime( double& PlaybackTime );
+	void GetAccurratPlayTime( float& PlaybackTime );
 
 	UFUNCTION( BlueprintCallable, Category = "SoundSource" )
 	void SyncTimer();

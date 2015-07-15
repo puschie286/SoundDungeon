@@ -1,5 +1,3 @@
-
-
 #pragma once
 
 #include "GameFramework/Character.h"
@@ -21,9 +19,6 @@ class SOUNDDUNGEON_MASTER_API APlayerCharacter : public ACharacter
 public:
 	// Sets default values for this character's properties
 	APlayerCharacter();
-
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
 	
 	// Called every frame
 	virtual void Tick( float DeltaSeconds ) override;

@@ -72,9 +72,9 @@ void ASoundSource::GetSoundString( FString &SoundName )
 	}
 }
 
-void ASoundSource::GetAccurratPlayTime( double& PlaybackTime )
+void ASoundSource::GetAccurratPlayTime( float& PlaybackTime )
 {
-	PlaybackTime = FPlatformTime::Seconds() - StartStamp;
+	PlaybackTime = (float)( FPlatformTime::Seconds() - StartStamp );
 }
 
 void ASoundSource::SyncTimer()

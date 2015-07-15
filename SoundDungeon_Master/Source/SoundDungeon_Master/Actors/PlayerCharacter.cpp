@@ -38,13 +38,6 @@ APlayerCharacter::APlayerCharacter()
 	CameraComponent->bUsePawnControlRotation = true;
 }
 
-// Called when the game starts or when spawned
-void APlayerCharacter::BeginPlay()
-{
-	Super::BeginPlay();
-	
-}
-
 // Called every frame
 void APlayerCharacter::Tick( float DeltaTime )
 {
@@ -61,7 +54,6 @@ void APlayerCharacter::Tick( float DeltaTime )
 		GrabedTarget->SetActorLocation( GetActorLocation() + GetActorRotation().Vector() * GrabOffset );
 	}
 }
-
 
 void APlayerCharacter::GrabObject()
 {
@@ -86,10 +78,11 @@ void APlayerCharacter::ActionObject()
 	if( Target )
 	{
 		ISimpleAction* ActionInstance = Cast<ISimpleAction>( Target );
-		if( ActionInstance )
+		
+		if( Target->GetClass()->ImplementsInterface( USimpleAction::StaticClass() ) )
 		{
-			bool Result = false;
-			ActionInstance->Action( Target, Result );
+			bool Result;
+			ISimpleAction::Execute_Action( Target, GrabedTarget, Result );
 			if( Result )
 			{
 				UE_LOG( LogTemp, Log, TEXT( "Interaction Successfull" ) );
