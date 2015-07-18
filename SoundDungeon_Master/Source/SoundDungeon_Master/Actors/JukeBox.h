@@ -38,10 +38,17 @@ public: // Properties
 public : // Functions
 	virtual bool	Action( AActor* Target ) override;
 
+	UFUNCTION( BlueprintCallable, Category = "JukeBox" )
+	void	EnablePower();
+
+	UFUNCTION( BlueprintImplementableEvent, Category = "JukeBox" )
+	virtual void	OnObjectActivation( int32 StateID, int32 ObjectID );
+
 private: // Properties
-	bool	Object0;
-	bool	Object1;
-	bool	Object2;
+	TArray<bool> ObjectsState;
+	// 0 - Power	- Part0
+	// 1 - Disc		- Part1
+	// 2 - Coin		- Part3
 
 	uint8	ActionStates;
 
@@ -51,4 +58,6 @@ private: // Functions
 
 	bool	RoomFirstActionActive();
 	bool	RoomSecondActionActive();
+
+	void	ActivateObject( uint8 Object );
 };

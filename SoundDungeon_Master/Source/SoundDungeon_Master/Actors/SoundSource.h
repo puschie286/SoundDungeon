@@ -43,7 +43,7 @@ public:
 	void Tick( float DeltaTime );
 	// Events
 
-	UFUNCTION( BlueprintImplementableEvent, meta = ( FriendlyName = "SoundSource" ) )
+	UFUNCTION( BlueprintImplementableEvent, Category = "SoundSource" )
 	virtual void OnSoundPlay();
 
 	UFUNCTION( BlueprintImplementableEvent, Category = "SoundSource" )
