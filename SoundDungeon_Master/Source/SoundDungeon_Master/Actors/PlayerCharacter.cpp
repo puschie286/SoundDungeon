@@ -3,8 +3,6 @@
 #include "SoundDungeon_Master.h"
 #include "PlayerCharacter.h"
 
-#include "../Interfaces/SimpleAction.h"
-
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -77,20 +75,26 @@ void APlayerCharacter::ActionObject()
 {
 	if( Target )
 	{
+		bool Result = false;
+		
 		ISimpleAction* ActionInstance = Cast<ISimpleAction>( Target );
 		
-		if( Target->GetClass()->ImplementsInterface( USimpleAction::StaticClass() ) )
+		if( ActionInstance ) // First check for C++ Interface-Implementation
 		{
-			bool Result;
+			Result = ActionInstance->Action( GrabedTarget );
+		} 
+		else if( Target->GetClass()->ImplementsInterface( USimpleAction::StaticClass() ) ) // Than for Blueprint Imeplementation
+		{
 			ISimpleAction::Execute_Action( Target, GrabedTarget, Result );
-			if( Result )
-			{
-				UE_LOG( LogTemp, Log, TEXT( "Interaction Successfull" ) );
-			}
-			else
-			{
-				UE_LOG( LogTemp, Warning, TEXT( "Interaction Failed" ) );
-			}
+		}
+
+		if( Result )
+		{
+			UE_LOG( LogTemp, Log, TEXT( "Interaction Successfull" ) );
+		}
+		else
+		{
+			UE_LOG( LogTemp, Warning, TEXT( "Interaction Failed" ) );
 		}
 	}
 }
@@ -166,3 +170,11 @@ AActor* APlayerCharacter::RangeRaycast( float Range )
 
 	return nullptr;
 }
+
+void APlayerCharacter::SetupPlayerInputComponent( UInputComponent* InputComponent )
+{
+	check( InputComponent );
+
+	InputComponent->BindKey( EKeys::RightMouseButton, IE_Pressed, this, &APlayerCharacter::InteractObject );
+}
+

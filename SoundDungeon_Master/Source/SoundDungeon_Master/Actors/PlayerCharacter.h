@@ -1,15 +1,10 @@
 #pragma once
 
 #include "GameFramework/Character.h"
-#include "PlayerCharacter.generated.h"
 
-UENUM( BlueprintType )
-enum class EInteractionRangeState : uint8
-{
-	NONE	UMETA( DisplayName = "None" ),
-	LONG	UMETA( DisplayName = "Long" ),
-	SHORT	UMETA( DisplayName = "Short" )
-};
+#include "../Interfaces/SimpleAction.h"
+
+#include "PlayerCharacter.generated.h"
 
 UCLASS()
 class SOUNDDUNGEON_MASTER_API APlayerCharacter : public ACharacter
@@ -93,4 +88,7 @@ public:
 
 private:
 	AActor* RangeRaycast( float Range );
+
+protected:
+	virtual void SetupPlayerInputComponent( UInputComponent* InputComponent ) override;
 };
