@@ -33,6 +33,16 @@ void AJukeBox::BeginPlay()
 	{
 		UE_LOG( LogTemp, Warning, TEXT( "No SoundSource set for JukeBox" ) );
 	}
+	if( !DropPart1 || !DropPart2 || !DropPart3 )
+	{
+		UE_LOG( LogTemp, Warning, TEXT( "Not all DropParts are set correct" ) );
+	}
+	else
+	{
+		DropPart1->SetActorHiddenInGame( true );
+		DropPart2->SetActorHiddenInGame( true );
+		DropPart3->SetActorHiddenInGame( true );
+	}
 }
 
 void AJukeBox::EnablePower()
@@ -40,6 +50,37 @@ void AJukeBox::EnablePower()
 	if( ActionStates == 0 )
 	{
 		ActivateObject( 0 );
+	}
+}
+
+void AJukeBox::DropPart( int32 part )
+{
+	FVector NewLocation = GetActorLocation();
+	NewLocation.Z -= GetActorScale().Z * 100;
+	AActor* Target = nullptr;
+	switch( part )
+	{
+		case 0 :
+			Target = DropPart1;
+			break;
+		case 1 :
+			Target = DropPart2;
+			break;
+		case 2 :
+			Target = DropPart3;
+			break;
+		default:
+			UE_LOG( LogTemp, Warning, TEXT( "DropPart %i not found" ), part );
+			break;
+	}
+	if( Target )
+	{
+		// TODO : SetLocation not working
+		if( Target->SetActorLocation( NewLocation ) )
+		{
+			Cast<UPrimitiveComponent>( Target->GetRootComponent() )->SetSimulatePhysics( true );
+			Target->SetActorHiddenInGame( false );
+		}
 	}
 }
 

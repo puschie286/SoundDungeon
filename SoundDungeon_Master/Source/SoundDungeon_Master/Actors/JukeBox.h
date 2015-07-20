@@ -3,8 +3,6 @@
 #include "Engine/StaticMeshActor.h"
 
 #include "../Interfaces/SimpleAction.h"
-#include "SoundSource.h"
-#include "PlayerCharacter.h"
 
 #include "JukeBox.generated.h"
 
@@ -23,7 +21,7 @@ public: // Unreal Functions & Construct
 	void BeginPlay();
 public: // Properties
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
-	ASoundSource*		SoundSource;
+	class ASoundSource*		SoundSource;
 
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
 	class USoundWave*		ErrorSound1;
@@ -46,11 +44,23 @@ public: // Properties
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
 	class USoundWave*		SoundPart3;
 
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
+	class AActor*			DropPart1;
+
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
+	class AActor*			DropPart2;
+
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
+	class AActor*			DropPart3;
+
 public : // Functions
 	virtual bool	Action( AActor* Target ) override;
 
 	UFUNCTION( BlueprintCallable, Category = "JukeBox" )
 	void	EnablePower();
+
+	UFUNCTION( BlueprintCallable, Category = "JukeBox" )
+	void	DropPart( int32 part );
 
 	UFUNCTION( BlueprintImplementableEvent, Category = "JukeBox" )
 	virtual void	OnObjectActivation( int32 StateID, int32 ObjectID );
@@ -66,7 +76,7 @@ private: // Properties
 
 	uint8	ActionStates;
 
-	APlayerCharacter* PlayerRef;
+	class APlayerCharacter* PlayerRef;
 
 private: // Functions
 	bool	RoomAction( AActor* Target );
