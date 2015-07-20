@@ -3,9 +3,8 @@
 #include "Engine/StaticMeshActor.h"
 
 #include "../Interfaces/SimpleAction.h"
-
 #include "SoundSource.h"
-#include "Sound/SoundWave.h"
+#include "PlayerCharacter.h"
 
 #include "JukeBox.generated.h"
 
@@ -24,16 +23,28 @@ public: // Unreal Functions & Construct
 	void BeginPlay();
 public: // Properties
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
-	ASoundSource*	SoundSource;
+	ASoundSource*		SoundSource;
 
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
-	USoundWave*		ErrorSound1;
+	class USoundWave*		ErrorSound1;
 
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
-	USoundWave*		ErrorSound2;
+	class USoundWave*		ErrorSound2;
 
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
-	USoundWave*		ErrorSound3;
+	class USoundWave*		ErrorSound3;
+
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
+	class USoundWave*		MainSound;
+
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
+	class USoundWave*		SoundPart1;
+
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
+	class USoundWave*		SoundPart2;
+
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
+	class USoundWave*		SoundPart3;
 
 public : // Functions
 	virtual bool	Action( AActor* Target ) override;
@@ -44,6 +55,9 @@ public : // Functions
 	UFUNCTION( BlueprintImplementableEvent, Category = "JukeBox" )
 	virtual void	OnObjectActivation( int32 StateID, int32 ObjectID );
 
+	UFUNCTION( BlueprintImplementableEvent, Category = "JukeBox" )
+	virtual void	OnRoomFinish( int32 RoomID );
+
 private: // Properties
 	TArray<bool> ObjectsState;
 	// 0 - Power	- Part0
@@ -52,9 +66,10 @@ private: // Properties
 
 	uint8	ActionStates;
 
+	APlayerCharacter* PlayerRef;
+
 private: // Functions
-	bool	RoomFirstAction( AActor* Target );
-	bool	RoomSecondAction( AActor* Target );
+	bool	RoomAction( AActor* Target );
 
 	bool	RoomFirstActionActive();
 	bool	RoomSecondActionActive();

@@ -71,6 +71,15 @@ void APlayerCharacter::ReleaseObject()
 	}
 }
 
+void APlayerCharacter::DestroyObject()
+{
+	if( GrabedTarget )
+	{
+		GrabedTarget->Destroy();
+		GrabedTarget = nullptr;
+	}
+}
+
 void APlayerCharacter::ActionObject()
 {
 	if( Target )

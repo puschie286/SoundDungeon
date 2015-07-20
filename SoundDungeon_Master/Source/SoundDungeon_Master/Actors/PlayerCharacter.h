@@ -70,6 +70,9 @@ public:
 	void ReleaseObject();
 
 	UFUNCTION( BlueprintCallable, Category = "Character" )
+	void DestroyObject();
+
+	UFUNCTION( BlueprintCallable, Category = "Character" )
 	void ActionObject();
 
 	UFUNCTION( BlueprintCallable, Category = "Character" )
