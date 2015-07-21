@@ -39,7 +39,7 @@ void AJukeBox::BeginPlay()
 	}
 	else
 	{
-		DropPart1->SetActorHiddenInGame( true );
+		//DropPart1->SetActorHiddenInGame( true );
 		DropPart2->SetActorHiddenInGame( true );
 		DropPart3->SetActorHiddenInGame( true );
 	}
@@ -56,7 +56,7 @@ void AJukeBox::EnablePower()
 void AJukeBox::DropPart( int32 part )
 {
 	FVector NewLocation = GetActorLocation();
-	NewLocation.Z -= GetActorScale().Z * 100;
+	NewLocation.Z -= GetActorScale().Z * 10;
 	AActor* Target = nullptr;
 	switch( part )
 	{
@@ -75,11 +75,13 @@ void AJukeBox::DropPart( int32 part )
 	}
 	if( Target )
 	{
-		// TODO : SetLocation not working
 		if( Target->SetActorLocation( NewLocation ) )
 		{
-			Cast<UPrimitiveComponent>( Target->GetRootComponent() )->SetSimulatePhysics( true );
 			Target->SetActorHiddenInGame( false );
+		}
+		else
+		{
+			UE_LOG( LogTemp, Warning, TEXT( "Cant set Location of Part-Actor" ) );
 		}
 	}
 }
