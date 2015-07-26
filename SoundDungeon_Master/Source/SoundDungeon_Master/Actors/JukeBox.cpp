@@ -39,7 +39,7 @@ void AJukeBox::BeginPlay()
 	}
 	else
 	{
-		//DropPart1->SetActorHiddenInGame( true );
+		DropPart1->SetActorHiddenInGame( true );
 		DropPart2->SetActorHiddenInGame( true );
 		DropPart3->SetActorHiddenInGame( true );
 	}

@@ -175,6 +175,53 @@ struct FScaling
 	}
 };
 
+USTRUCT( BlueprintType )
+struct FWaveformConfig
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = "Waveform Config" )
+	UCustomMeshComponent* Component;
+
+	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = "Waveform Config" )
+	bool DrawChannels;
+
+	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = "Waveform Config" )
+	bool DrawAsCurve;
+
+	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = "Waveform Config" )
+	bool DrawFull;
+
+	/**
+	* Radius != 0 : Auflösung der Frakgremnte
+	* Sonst : Breite der Waveform
+	*/
+	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = "Waveform Config" )
+	int32 Width;
+
+	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = "Waveform Config" )
+	int32 Height;
+	
+	/**
+	* Wird als Kreis dargestellt wenn Radius > 0
+	*/
+	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = "Waveform Config" )
+	int32 Radius;
+
+	FWaveformConfig()
+	{
+		Component = nullptr;
+
+		DrawChannels = false;
+		DrawAsCurve = false;
+		DrawFull = false;
+
+		Width = 300;
+		Height = 100;
+		Radius = 0;
+	}
+};
+
 UCLASS( ClassGroup = ( Custom ), Meta = ( BlueprintSpawnableComponent ) )
 class SOUNDDUNGEON_MASTER_API UWAVLibrary : public UObject
 {
@@ -211,7 +258,7 @@ public:
 
 	bool FinishedUsage( TArray<uint8>* WavPtr );
 
-	bool GenerateWaveform( TArray<uint8>* WavPtr, UCustomMeshComponent* InComponent, bool DrawChannels = false, bool DrawAsCurve = false, uint32 Width = 300, uint32 Height = 100 );
+	bool GenerateWaveform( TArray<uint8>* WavPtr, FWaveformConfig* WConfig );
 
 	void CalculateFrequencySpectrum( const bool bSplitChannels, const float StartTime, const float TimeLength, const int32 SpectrumWidth, TArray<uint8>* InWavPtr, TArray<TArray<float>> &OutSpectrum );
 
@@ -245,7 +292,7 @@ public:
 	static void LIBGetWAV( FString WAVName, TArray<uint8>& OutData, bool Force = false );
 
 	UFUNCTION( BlueprintCallable, Category = "SoundVisualize" )
-	static void LIBGenerateWaveform( UPARAM( ref ) TArray<uint8>& InData, UCustomMeshComponent* InComponent, bool DrawChannels = false, bool DrawAsCurve = false, int32 Width = 300, int32 Height = 100 );
+	static void LIBGenerateWaveform( UPARAM( ref ) TArray<uint8>& InData, UPARAM( ref ) FWaveformConfig& WConfig );
 	
 	/** Calculates the frequency spectrum for a window of time for the SoundWave
 	* @param InData - The waveData to generate the spectrum for
@@ -295,4 +342,7 @@ public:
 
 	UFUNCTION( BlueprintCallable, Category = "SoundVisualize" )
 	static void LIBCalculateWAVData( int32 Channel, float StartTime, float TimeLength, int32 SpectrumWidth, FString WAVName, int32 Slot );
+
+	UFUNCTION( BlueprintCallable, Category = "Helper" )
+	static void LIBUpdateWaveformCurser( UStaticMeshComponent* Target, float Duration, float PlayTime, int32 Radius, FRotator RotOffset, FVector PosOffset );
 };
