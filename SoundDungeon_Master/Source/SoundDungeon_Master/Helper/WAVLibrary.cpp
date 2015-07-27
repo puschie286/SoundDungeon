@@ -848,21 +848,21 @@ void UWAVLibrary::LIBUpdateWaveformCurser( UStaticMeshComponent* Target, float D
 {
 	check( Target );
 
-	if( PlayTime == 0 )
+	if( PlayTime != 0.f && Duration != 0.f )
 	{
-		PlayTime = 0.1f;
-	}
+		float Point = ( PlayTime / Duration ) * 2 * PI;
 
-	if( Duration == 0 )
+		Target->SetRelativeLocation( FVector( FMath::Cos( Point ) * Radius, 0.f, FMath::Sin( Point ) * Radius ) + PosOffset );
+		Target->SetRelativeRotation( FRotator( 0.f, ( PlayTime / Duration ) * -360.f, 0.f ) + RotOffset );
+	}
+}
+
+void UWAVLibrary::LIBUpdateWaveformSelf( UCustomMeshComponent* Target, float Duration, float PlayTime )
+{
+	check( Target );
+
+	if( PlayTime != 0.f && Duration != 0.f )
 	{
-		Duration = 0.1f;
+		Target->SetRelativeRotation( FRotator( 180.f, 90.f + ( PlayTime / Duration ) * 360.f, 90.f ) );
 	}
-
-	float Point = ( PlayTime / Duration ) * 2 * PI;
-
-	float RCos = FMath::Cos( Point ) * Radius;
-	float RSin = FMath::Sin( Point ) * Radius;
-
-	Target->SetRelativeLocation( FVector( RCos, 0.f, RSin ) + PosOffset );
-	Target->SetRelativeRotation( FRotator( 0.f, ( PlayTime / Duration ) * -360.f, 0.f ) + RotOffset );
 }

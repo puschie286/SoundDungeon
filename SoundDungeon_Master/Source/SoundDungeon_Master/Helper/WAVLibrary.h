@@ -353,4 +353,7 @@ public:
 
 	UFUNCTION( BlueprintCallable, Category = "Helper" )
 	static void LIBUpdateWaveformCurser( UStaticMeshComponent* Target, float Duration, float PlayTime, int32 Radius, FRotator RotOffset, FVector PosOffset );
+
+	UFUNCTION( BlueprintCallable, Category = "Helper" )
+	static void LIBUpdateWaveformSelf( UCustomMeshComponent* Target, float Duration, float PlayTime );
 };
