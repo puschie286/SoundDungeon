@@ -7,6 +7,8 @@
 #include "Containers/Map.h"
 #include "CustomMeshComponent.h"
 
+#include <limits>
+
 #include "WAVLibrary.generated.h"
 
 USTRUCT( BlueprintType )
@@ -87,63 +89,69 @@ struct FScaling
 
 	float GetScaled( const float Value )
 	{
-		if( bAddScaledValue )
+		float Return = MinScale;
+
+		if( Value != std::numeric_limits<float>::infinity() &&
+			Value != std::numeric_limits<float>::infinity() * -1 )
 		{
-			AddValue( Value );
-		}
-
-		float x = 0 - MinCurrent;
-		float y = 0 - MinScale;
-		float Return = ( ( Value + x ) / ( MaxCurrent + x ) ) * ( MaxScale + y ) - y;
-
-		if( InterpolateInterval != 0 ) // Interpolate Scaled Value
-		{
-			if( InterpolateStorage.Num() != InterpolateInterval ) // Resize Storage
+			if( bAddScaledValue )
 			{
-				InterpolateStorage.SetNum( InterpolateInterval );
-				float SetValue = ( bInterpolateIgnoreNull && Return == 0.f ) ? ( 0.01f ) : ( Return );
-				for( float& Element : InterpolateStorage )
-				{
-					Element = SetValue;
-				}
-				InterpolateCounter = 0;
+				AddValue( Value );
 			}
-			else // Calculate Average
-			{
-				float Average = 0.f;
-				float SetValue = Return;
 
-				if( bInterpolateIgnoreNull && Return == 0.f ) // Interpolate Ignore
-				{
-					if( 0.01f > MaxScale )
-					{
-						SetValue = MaxScale;
-					}
-					else if( 0.01f < MinScale )
-					{
-						SetValue = MinScale;
-					}
-					else
-					{
-						SetValue = 0.01f;
-					}
-				}
-				InterpolateStorage[InterpolateCounter] = SetValue;
+			float x = 0 - MinCurrent;
+			float y = 0 - MinScale;
+			Return = ( ( Value + x ) / ( MaxCurrent + x ) ) * ( MaxScale + y ) - y;
 
-				for( const float Element : InterpolateStorage )
+			if( InterpolateInterval != 0 ) // Interpolate Scaled Value
+			{
+				if( InterpolateStorage.Num() != InterpolateInterval ) // Resize Storage
 				{
-					Average += Element;
+					InterpolateStorage.SetNum( InterpolateInterval );
+					float SetValue = ( bInterpolateIgnoreNull && Return == 0.f ) ? ( 0.01f ) : ( Return );
+					for( float& Element : InterpolateStorage )
+					{
+						Element = SetValue;
+					}
+					InterpolateCounter = 0;
 				}
-				Return = Average / InterpolateInterval;
-			}
-			
-			if( InterpolateCounter + 1 >= InterpolateInterval ) // Counter Switch
-			{
-				InterpolateCounter = 0;
-			}
-			else
-			{
-				InterpolateCounter++;
+				else // Calculate Average
+				{
+					float Average = 0.f;
+					float SetValue = Return;
+
+					if( bInterpolateIgnoreNull && Return == 0.f ) // Interpolate Ignore
+					{
+						if( 0.01f > MaxScale )
+						{
+							SetValue = MaxScale;
+						}
+						else if( 0.01f < MinScale )
+						{
+							SetValue = MinScale;
+						}
+						else
+						{
+							SetValue = 0.01f;
+						}
+					}
+					InterpolateStorage[InterpolateCounter] = SetValue;
+
+					for( const float Element : InterpolateStorage )
+					{
+						Average += Element;
+					}
+					Return = Average / InterpolateInterval;
+				}
+
+				if( InterpolateCounter + 1 >= InterpolateInterval ) // Counter Switch
+				{
+					InterpolateCounter = 0;
+				}
+				else
+				{
+					InterpolateCounter++;
+				}
 			}
 		}
 		return Return;

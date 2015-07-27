@@ -40,6 +40,9 @@ public:
 	UFUNCTION( BlueprintCallable, Category = "SoundSource" )
 	void SyncTimer();
 
+	UFUNCTION( BlueprintCallable, Category = "SoundSource" )
+	void HardSync();
+
 	void Tick( float DeltaTime );
 	// Events
 

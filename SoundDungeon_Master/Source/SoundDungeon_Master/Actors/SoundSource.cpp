@@ -16,13 +16,14 @@ ASoundSource::ASoundSource( const FObjectInitializer &ObjectInitializer )
 
 void ASoundSource::PlaySound( float StartTime /*= 0.f */ )
 {
-	GetAudioComponent()->Play( StartTime );
 	Duration = ( (USoundWave*)( GetAudioComponent()->Sound ) )->Duration;
 
 	StartStamp = FPlatformTime::Seconds() - FMath::Max( 0.f, StartTime );
 	LastUpdateStamp = StartStamp;
 	PlayTime = FMath::Max( 0.f, StartTime );
-	
+
+	GetAudioComponent()->Play( PlayTime );
+
 	if( StartTime <= 0.f )
 	{
 		OnSoundStart();
@@ -83,6 +84,15 @@ void ASoundSource::SyncTimer()
 	{
 		LastUpdateStamp = FPlatformTime::Seconds();
 		PlayTime = LastUpdateStamp - StartStamp;
+	}
+}
+
+void ASoundSource::HardSync()
+{
+	SyncTimer();
+	if( GetAudioComponent()->IsPlaying() )
+	{
+		PlaySound( PlayTime );
 	}
 }
 

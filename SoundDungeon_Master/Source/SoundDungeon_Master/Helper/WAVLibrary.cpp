@@ -673,13 +673,13 @@ void UWAVLibrary::CalculateWAVData( int32 Channel, float StartTime, float TimeLe
 
 		if( SlotData->Num() != SpectrumWidth )
 		{
-			SlotData->SetNum( SpectrumWidth );
+			SlotData->Reserve( SpectrumWidth );
 		}
-
 		for( int32 i = 0; i < SpectrumWidth; ++i )
 		{
-			SlotData->Insert( Data0[i] * Data1[i], i );
+			Data0[i] *= Data1[i];
 		}
+		*SlotData = Data0;
 	}
 }
 
