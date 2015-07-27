@@ -7,23 +7,35 @@
 
 // Helper
 
-void GenerateLine( TArray<FCustomMeshTriangle>& List, FVector2D StartPos, FVector2D EndPos, float Scale = 1.f )
+void GenerateLine( TArray<FCustomMeshTriangle>& List, FVector StartPos, FVector EndPos, bool DrawFull = false )
 {
 	FCustomMeshTriangle Triangle0, Triangle1;
 
-	float x0 = StartPos.X, x1 = EndPos.X;
-	float y0 = StartPos.Y, y1 = EndPos.Y;
+	Triangle0.Vertex0 = FVector( StartPos.X, StartPos.Y, StartPos.Z );
+	Triangle0.Vertex1 = FVector( EndPos.X, StartPos.Y, EndPos.Z );
+	Triangle0.Vertex2 = FVector( StartPos.X, EndPos.Y, StartPos.Z );
 
-	Triangle0.Vertex0 = FVector( x0 + 0.f, y0 + 0.f, 0.f );
-	Triangle0.Vertex1 = FVector( x0 + 1.f * Scale, y0 + 0.f, 0.f );
-	Triangle0.Vertex2 = FVector( x1 + 0.f, y1 + 1.f * Scale, 0.f );
-
-	Triangle1.Vertex0 = FVector( x0 + 1.f * Scale, y0 + 0.f, 0.f );
-	Triangle1.Vertex1 = FVector( x1 + 1.f * Scale, y1 + 1.f * Scale, 0.f );
-	Triangle1.Vertex2 = FVector( x1 + 0.f, y1 + 1.f * Scale, 0.f );
+	Triangle1.Vertex0 = Triangle0.Vertex1;
+	Triangle1.Vertex1 = FVector( EndPos.X, EndPos.Y, EndPos.Z );
+	Triangle1.Vertex2 = Triangle0.Vertex2;
 
 	List.Add( Triangle0 );
 	List.Add( Triangle1 );
+
+	if( DrawFull )
+	{
+		FCustomMeshTriangle Triangle2;
+
+		Triangle2.Vertex0 = Triangle0.Vertex1;
+		Triangle2.Vertex1 = Triangle0.Vertex0;
+		Triangle2.Vertex2 = Triangle0.Vertex2;
+
+		Triangle1.Vertex0 = Triangle0.Vertex2;
+		Triangle1.Vertex2 = Triangle0.Vertex1;
+
+		List.Add( Triangle2 );
+		List.Add( Triangle1 );
+	}
 }
 
 // Static
@@ -215,14 +227,11 @@ bool UWAVLibrary::FinishedUsage( TArray<uint8>* WavPtr )
 	return false;
 }
 
-bool UWAVLibrary::GenerateWaveform( TArray<uint8>* WavPtr, UCustomMeshComponent* InComponent, bool DrawChannels, bool DrawAsCurve, uint32 Width, uint32 Height )
+bool UWAVLibrary::GenerateWaveform( TArray<uint8>* WavPtr, FWaveformConfig* WConfig )
 {
 	if( WavPtr != NULL )
 	{
 		// Copy from ThumbnailRendering
-		bool bDrawChannels = DrawChannels;
-		bool bDrawAsCurve = DrawAsCurve;
-
 		uint8* RawWaveData = WavPtr->GetData();
 		int32 RawDataSize = WavPtr->Num();
 		FWaveModInfo WaveInfo;
@@ -231,7 +240,7 @@ bool UWAVLibrary::GenerateWaveform( TArray<uint8>* WavPtr, UCustomMeshComponent*
 		if( WaveInfo.ReadWaveHeader( RawWaveData, RawDataSize, 0 ) )
 		{
 			uint8 numChannels = 1; // SoundWave->NumChannels
-			const float SampleYScale = Height / ( 2.f * 32767 * ( bDrawChannels ? numChannels : 1 ) );
+			const float SampleYScale = WConfig->Height / ( 2.f * 32767 * ( WConfig->DrawChannels ? numChannels : 1 ) );
 
 			int16* SamplePtr = reinterpret_cast<int16*>( WaveInfo.SampleDataStart );
 
@@ -246,13 +255,17 @@ bool UWAVLibrary::GenerateWaveform( TArray<uint8>* WavPtr, UCustomMeshComponent*
 			{
 				UE_LOG( LogTemp, Warning, TEXT( "Support only for 2 Channels" ) );
 			}
-			const uint32 SamplesPerX = ( SampleCount / Width ) + 1;
+			const uint32 SamplesPerX = ( SampleCount / WConfig->Width ) + 1;
 			float LastScaledSample[10] = { 0.f };
 
 			TArray<FCustomMeshTriangle> TriangleList;
-
-			for( uint32 XOffset = 0; XOffset < Width - 1; ++XOffset )
+			const float RoundStep = 2 * PI / WConfig->Width;
+			float LastRCos = ( WConfig->Radius != 0 ) ? ( WConfig->Radius ) : ( 0.f );
+			float LastRSin = 0.f;
+			for( int32 XOffset = 0; XOffset < WConfig->Width - 1; ++XOffset )
 			{
+				const float RCos = ( WConfig->Radius != 0 ) ? ( FMath::Cos( RoundStep * ( XOffset + 1 ) ) * WConfig->Radius ) : ( XOffset + 1 );
+				const float RSin = ( WConfig->Radius != 0 ) ? ( FMath::Sin( RoundStep * ( XOffset + 1 ) ) * WConfig->Radius ) : ( 0.f );
 				int64 SampleSum[10] = { 0 };
 				if( numChannels <= 2 )
 				{
@@ -260,36 +273,36 @@ bool UWAVLibrary::GenerateWaveform( TArray<uint8>* WavPtr, UCustomMeshComponent*
 					{
 						for( int32 ChannelIndex = 0; ChannelIndex < numChannels; ++ChannelIndex )
 						{
-							const int16 SampleValue = ( bDrawAsCurve ? *SamplePtr : FMath::Abs( *SamplePtr ) );
+							const int16 SampleValue = ( WConfig->DrawAsCurve ? *SamplePtr : FMath::Abs( *SamplePtr ) );
 							SampleSum[ChannelIndex] += SampleValue;
 							++SamplePtr;
 						}
 					}
 				}
-				if( bDrawChannels )
+				if( WConfig->DrawChannels )
 				{
 					for( int32 ChannelIndex = 0; ChannelIndex < numChannels; ++ChannelIndex )
 					{
 						const float ScaledSample = SampleSum[ChannelIndex] / SamplesPerX * SampleYScale;
-						if( bDrawAsCurve )
+						if( WConfig->DrawAsCurve )
 						{
 							if( XOffset > 0 )
 							{
-								const float YCenter = ( ( 2 * ChannelIndex ) + 1 ) * Height / ( 2.f * numChannels );
-								GenerateLine( TriangleList, FVector2D( XOffset - 1, YCenter + LastScaledSample[ChannelIndex] ), FVector2D( XOffset, YCenter + ScaledSample ) );
+								const float YCenter = ( ( 2 * ChannelIndex ) + 1 ) * WConfig->Height / ( 2.f * numChannels );
+								GenerateLine( TriangleList, FVector( LastRCos - 1, YCenter + LastScaledSample[ChannelIndex], LastRSin ), FVector( RCos, YCenter + ScaledSample, RSin ) );
 							}
 							LastScaledSample[ChannelIndex] = ScaledSample;
 						}
 						else if( ScaledSample > 0.001f )
 						{
-							const float YCenter = ( ( 2 * ChannelIndex ) + 1 ) * Height / ( 2.f * numChannels );
-							GenerateLine( TriangleList, FVector2D( XOffset, YCenter - ScaledSample ), FVector2D( XOffset, YCenter + ScaledSample ) );
+							const float YCenter = ( ( 2 * ChannelIndex ) + 1 ) * WConfig->Height / ( 2.f * numChannels );
+							GenerateLine( TriangleList, FVector( LastRCos, YCenter - ScaledSample, LastRSin ), FVector( RCos, YCenter + ScaledSample, RSin ) );
 						}
 					}
 				}
 				else
 				{
-					if( bDrawAsCurve )
+					if( WConfig->DrawAsCurve )
 					{
 						float ScaledSampleSum = 0.f;
 						int32 ActiveChannelCount = 0;
@@ -305,8 +318,7 @@ bool UWAVLibrary::GenerateWaveform( TArray<uint8>* WavPtr, UCustomMeshComponent*
 						const float ScaledSample = ( ActiveChannelCount > 0 ? ScaledSampleSum / ActiveChannelCount : 0.f );
 						if( XOffset > 0 )
 						{
-							const float YCenter = 0.5f * Height;
-							GenerateLine( TriangleList, FVector2D( XOffset - 1, YCenter + LastScaledSample[0] ), FVector2D( XOffset, YCenter + ScaledSample ) );
+							GenerateLine( TriangleList, FVector( LastRCos - 1, 0.5f * WConfig->Height + LastScaledSample[0], LastRSin ), FVector( RCos, 0.5f * WConfig->Height + ScaledSample, RSin ) );
 						}
 						LastScaledSample[0] = ScaledSample;
 					}
@@ -320,13 +332,26 @@ bool UWAVLibrary::GenerateWaveform( TArray<uint8>* WavPtr, UCustomMeshComponent*
 						}
 						if( MaxScaledSample > 0.001f )
 						{
-							const float YCenter = 0.5f * Height;
-							GenerateLine( TriangleList, FVector2D( XOffset, YCenter - MaxScaledSample ), FVector2D( XOffset, YCenter + MaxScaledSample ) );
+							const float YCentre = 0.5f * WConfig->Height;
+							GenerateLine( TriangleList, FVector( LastRCos, YCentre - MaxScaledSample, LastRSin ), FVector( RCos, YCentre + MaxScaledSample, RSin ), WConfig->DrawFull );
 						}
 					}
 				}
+				LastRCos = RCos;
+				LastRSin = RSin;
 			}
-			InComponent->SetCustomMeshTriangles( TriangleList );
+			WConfig->Component->SetCustomMeshTriangles( TriangleList );
+			// Center alignment
+			if( WConfig->Radius == 0 )
+			{
+				WConfig->Component->SetRelativeLocation( FVector( WConfig->Width / 2.f, 0.f, 0.f ) );
+				WConfig->Component->SetRelativeRotation( FRotator( 180.f, 0.f, 90.f ) );
+			}
+			else
+			{
+				WConfig->Component->SetRelativeLocation( FVector( 0.f, 0.f, WConfig->Height / -2.f ) );
+				WConfig->Component->SetRelativeRotation( FRotator( 180.f, 90.f, 90.f ) );
+			}
 		}
 	}
 	else if( bUseLog )
@@ -593,7 +618,6 @@ void UWAVLibrary::GetAmplitude( const bool bSplitChannels, const float StartTime
 	}
 }
 
-
 void UWAVLibrary::ClearShareData( const int32 NewSize /*= 0 */ )
 {
 	ShareStorage.Empty( NewSize );
@@ -616,6 +640,46 @@ void UWAVLibrary::SetShare( const TArray<float>& InData, const int32 Slot /*= 0 
 	else
 	{
 		ShareStorage.Insert( InData, Slot );
+	}
+}
+
+void UWAVLibrary::GetShareSingle( float& Out, const int32 Slot, const int32 Index )
+{
+	Out = -1;
+	if( ShareStorage.Num() > Slot )
+	{
+		if( ShareStorage[Slot].Num() > Index )
+		{
+			Out = ShareStorage[Slot][Index];
+		}
+	}
+}
+
+void UWAVLibrary::CalculateWAVData( int32 Channel, float StartTime, float TimeLength, int32 SpectrumWidth, FString WAVName, int32 Slot )
+{
+	bool WAVLoaded = true;
+	if( !IsLoadedWAV( *( WAVName ) ) )
+	{
+		WAVLoaded = LoadWAV( *( WAVName ) );
+	}
+	if( WAVLoaded )
+	{
+		TArray<uint8> *WAVData = GetWAV( *( WAVName ) );
+		TArray<float> *SlotData = &ShareStorage[Slot];
+		TArray<float> Data0, Data1;
+
+		LIBCalculateFrequencySpectrum( Channel, StartTime, TimeLength, SpectrumWidth, *WAVData, Data0 );
+		LIBGetAmplitude( Channel, StartTime, TimeLength, SpectrumWidth, *WAVData, Data1 );
+
+		if( SlotData->Num() != SpectrumWidth )
+		{
+			SlotData->Reserve( SpectrumWidth );
+		}
+		for( int32 i = 0; i < SpectrumWidth; ++i )
+		{
+			Data0[i] *= Data1[i];
+		}
+		*SlotData = Data0;
 	}
 }
 
@@ -648,9 +712,9 @@ void UWAVLibrary::LIBGetWAV( FString WAVName, TArray<uint8>& OutData, bool Force
 	}
 }
 
-void UWAVLibrary::LIBGenerateWaveform( TArray<uint8>& InData, UCustomMeshComponent* InComponent, bool DrawChannels, bool DrawAsCurve, int32 Width, int32 Height )
+void UWAVLibrary::LIBGenerateWaveform( TArray<uint8>& InData, FWaveformConfig& WConfig )
 {
-	GetInstance()->GenerateWaveform( &InData, InComponent, DrawChannels, DrawAsCurve, Width, Height );
+	GetInstance()->GenerateWaveform( &InData, &WConfig );
 }
 
 void UWAVLibrary::LIBCalculateFrequencySpectrum( int32 Channel, float StartTime, float TimeLength, int32 SpectrumWidth, TArray<uint8>& InData, TArray<float> &OutSpectrum )
@@ -669,7 +733,7 @@ void UWAVLibrary::LIBCalculateFrequencySpectrum( int32 Channel, float StartTime,
 	}
 	if( StartTime <= 0.f )
 	{
-		UE_LOG( LogTemp, Warning, TEXT("") );
+		UE_LOG( LogTemp, Warning, TEXT("Adjust StartTime from %d to 0.01"), StartTime );
 		StartTime = 0.01f;
 	}
 	// Call
@@ -718,12 +782,12 @@ void UWAVLibrary::LIBGetAmplitude( int32 Channel, float StartTime, float TimeLen
 	}
 }
 
-void UWAVLibrary::LIBScaleAddValue( UPARAM( ref ) FScaling& Scale, const float Value )
+void UWAVLibrary::LIBScaleAddValue( FScaling& Scale, const float Value )
 {
 	Scale.AddValue( Value );
 }
 
-void UWAVLibrary::LIBScaleGetScaled( UPARAM( ref ) FScaling& Scale, const float Value, float& ScaledValue )
+void UWAVLibrary::LIBScaleGetScaled( FScaling& Scale, const float Value, float& ScaledValue )
 {
 	Scale.GetScaled( Value, ScaledValue );
 }
@@ -733,7 +797,7 @@ void UWAVLibrary::LIBClearShareStorage( const int32 NewSize )
 	GetInstance()->ClearShareData( NewSize );
 }
 
-void UWAVLibrary::LIBSetShare( UPARAM( ref ) TArray<float>& DataToStore, const int32 Slot /*= 0 */ )
+void UWAVLibrary::LIBSetShare( TArray<float>& DataToStore, const int32 Slot /*= 0 */ )
 {
 	GetInstance()->SetShare( DataToStore, Slot );
 }
@@ -741,6 +805,11 @@ void UWAVLibrary::LIBSetShare( UPARAM( ref ) TArray<float>& DataToStore, const i
 void UWAVLibrary::LIBGetShare( TArray<float>& StoredData, const int32 Slot /*= 0 */ )
 {
 	GetInstance()->GetShare( StoredData, Slot );
+}
+
+void UWAVLibrary::LIBGetShareSingle( float& Out, const int32 Slot, const int32 Index )
+{
+	GetInstance()->GetShareSingle( Out, Slot, Index );
 }
 
 void UWAVLibrary::LIBArrayMultiply( const TArray<float>& FirstArray, const TArray<float>& SecondArray, TArray<float>& ResultArray )
@@ -762,5 +831,38 @@ void UWAVLibrary::LIBArrayMultiply( const TArray<float>& FirstArray, const TArra
 	else
 	{
 		UE_LOG( LogTemp, Warning, TEXT( "Cant multiply Arrays - Different Size" ) );
+	}
+}
+
+void UWAVLibrary::LIBNormalized( const float Value, float &NormalizedValue, const float MinScale, const float MaxScale, const float MinValue, const float MaxValue )
+{
+	NormalizedValue = ( ( Value + ( 0 - MinValue ) ) / ( MaxValue + ( 0 - MinValue ) ) ) * ( MaxScale + ( 0 - MinScale ) ) - ( 0 - MinScale );
+}
+
+void UWAVLibrary::LIBCalculateWAVData( int32 Channel, float StartTime, float TimeLength, int32 SpectrumWidth, FString WAVName, int32 Slot )
+{
+	GetInstance()->CalculateWAVData( Channel, StartTime, TimeLength, SpectrumWidth, WAVName, Slot );
+}
+
+void UWAVLibrary::LIBUpdateWaveformCurser( UStaticMeshComponent* Target, float Duration, float PlayTime, int32 Radius, FRotator RotOffset, FVector PosOffset )
+{
+	check( Target );
+
+	if( PlayTime != 0.f && Duration != 0.f )
+	{
+		float Point = ( PlayTime / Duration ) * 2 * PI;
+
+		Target->SetRelativeLocation( FVector( FMath::Cos( Point ) * Radius, 0.f, FMath::Sin( Point ) * Radius ) + PosOffset );
+		Target->SetRelativeRotation( FRotator( 0.f, ( PlayTime / Duration ) * -360.f, 0.f ) + RotOffset );
+	}
+}
+
+void UWAVLibrary::LIBUpdateWaveformSelf( UCustomMeshComponent* Target, float Duration, float PlayTime )
+{
+	check( Target );
+
+	if( PlayTime != 0.f && Duration != 0.f )
+	{
+		Target->SetRelativeRotation( FRotator( 180.f, 90.f + ( PlayTime / Duration ) * 360.f, 90.f ) );
 	}
 }

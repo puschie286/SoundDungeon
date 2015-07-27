@@ -7,6 +7,8 @@
 #include "Containers/Map.h"
 #include "CustomMeshComponent.h"
 
+#include <limits>
+
 #include "WAVLibrary.generated.h"
 
 USTRUCT( BlueprintType )
@@ -87,63 +89,69 @@ struct FScaling
 
 	float GetScaled( const float Value )
 	{
-		if( bAddScaledValue )
+		float Return = MinScale;
+
+		if( Value != std::numeric_limits<float>::infinity() &&
+			Value != std::numeric_limits<float>::infinity() * -1 )
 		{
-			AddValue( Value );
-		}
-
-		float x = 0 - MinCurrent;
-		float y = 0 - MinScale;
-		float Return = ( ( Value + x ) / ( MaxCurrent + x ) ) * ( MaxScale + y ) - y;
-
-		if( InterpolateInterval != 0 ) // Interpolate Scaled Value
-		{
-			if( InterpolateStorage.Num() != InterpolateInterval ) // Resize Storage
+			if( bAddScaledValue )
 			{
-				InterpolateStorage.SetNum( InterpolateInterval );
-				float SetValue = ( bInterpolateIgnoreNull && Return == 0.f ) ? ( 0.01f ) : ( Return );
-				for( float& Element : InterpolateStorage )
-				{
-					Element = SetValue;
-				}
-				InterpolateCounter = 0;
+				AddValue( Value );
 			}
-			else // Calculate Average
-			{
-				float Average = 0.f;
-				float SetValue = Return;
 
-				if( bInterpolateIgnoreNull && Return == 0.f ) // Interpolate Ignore
-				{
-					if( 0.01f > MaxScale )
-					{
-						SetValue = MaxScale;
-					}
-					else if( 0.01f < MinScale )
-					{
-						SetValue = MinScale;
-					}
-					else
-					{
-						SetValue = 0.01f;
-					}
-				}
-				InterpolateStorage[InterpolateCounter] = SetValue;
+			float x = 0 - MinCurrent;
+			float y = 0 - MinScale;
+			Return = ( ( Value + x ) / ( MaxCurrent + x ) ) * ( MaxScale + y ) - y;
 
-				for( const float Element : InterpolateStorage )
+			if( InterpolateInterval != 0 ) // Interpolate Scaled Value
+			{
+				if( InterpolateStorage.Num() != InterpolateInterval ) // Resize Storage
 				{
-					Average += Element;
+					InterpolateStorage.SetNum( InterpolateInterval );
+					float SetValue = ( bInterpolateIgnoreNull && Return == 0.f ) ? ( 0.01f ) : ( Return );
+					for( float& Element : InterpolateStorage )
+					{
+						Element = SetValue;
+					}
+					InterpolateCounter = 0;
 				}
-				Return = Average / InterpolateInterval;
-			}
-			
-			if( InterpolateCounter + 1 >= InterpolateInterval ) // Counter Switch
-			{
-				InterpolateCounter = 0;
-			}
-			else
-			{
-				InterpolateCounter++;
+				else // Calculate Average
+				{
+					float Average = 0.f;
+					float SetValue = Return;
+
+					if( bInterpolateIgnoreNull && Return == 0.f ) // Interpolate Ignore
+					{
+						if( 0.01f > MaxScale )
+						{
+							SetValue = MaxScale;
+						}
+						else if( 0.01f < MinScale )
+						{
+							SetValue = MinScale;
+						}
+						else
+						{
+							SetValue = 0.01f;
+						}
+					}
+					InterpolateStorage[InterpolateCounter] = SetValue;
+
+					for( const float Element : InterpolateStorage )
+					{
+						Average += Element;
+					}
+					Return = Average / InterpolateInterval;
+				}
+
+				if( InterpolateCounter + 1 >= InterpolateInterval ) // Counter Switch
+				{
+					InterpolateCounter = 0;
+				}
+				else
+				{
+					InterpolateCounter++;
+				}
 			}
 		}
 		return Return;
@@ -172,6 +180,53 @@ struct FScaling
 
 		bUseMinMaxValue = false;
 		bAddScaledValue = true;
+	}
+};
+
+USTRUCT( BlueprintType )
+struct FWaveformConfig
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = "Waveform Config" )
+	UCustomMeshComponent* Component;
+
+	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = "Waveform Config" )
+	bool DrawChannels;
+
+	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = "Waveform Config" )
+	bool DrawAsCurve;
+
+	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = "Waveform Config" )
+	bool DrawFull;
+
+	/**
+	* Radius != 0 : Auflösung der Frakgremnte
+	* Sonst : Breite der Waveform
+	*/
+	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = "Waveform Config" )
+	int32 Width;
+
+	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = "Waveform Config" )
+	int32 Height;
+	
+	/**
+	* Wird als Kreis dargestellt wenn Radius > 0
+	*/
+	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = "Waveform Config" )
+	int32 Radius;
+
+	FWaveformConfig()
+	{
+		Component = nullptr;
+
+		DrawChannels = false;
+		DrawAsCurve = false;
+		DrawFull = false;
+
+		Width = 300;
+		Height = 100;
+		Radius = 0;
 	}
 };
 
@@ -211,7 +266,7 @@ public:
 
 	bool FinishedUsage( TArray<uint8>* WavPtr );
 
-	bool GenerateWaveform( TArray<uint8>* WavPtr, UCustomMeshComponent* InComponent, bool DrawChannels = false, bool DrawAsCurve = false, uint32 Width = 300, uint32 Height = 100 );
+	bool GenerateWaveform( TArray<uint8>* WavPtr, FWaveformConfig* WConfig );
 
 	void CalculateFrequencySpectrum( const bool bSplitChannels, const float StartTime, const float TimeLength, const int32 SpectrumWidth, TArray<uint8>* InWavPtr, TArray<TArray<float>> &OutSpectrum );
 
@@ -222,6 +277,10 @@ public:
 	void GetShare( TArray<float>& OutData, const int32 Slot = 0 );
 
 	void SetShare( const TArray<float>& InData, const int32 Slot = 0);
+
+	void CalculateWAVData( int32 Channel, float StartTime, float TimeLength, int32 SpectrumWidth, FString WAVName, int32 Slot );
+
+	void GetShareSingle( float& Out, const int32 Slot = 0, const int32 Index = 5 ); // Out == -1 On Faile
 
 	bool bUseLog;
 
@@ -241,7 +300,7 @@ public:
 	static void LIBGetWAV( FString WAVName, TArray<uint8>& OutData, bool Force = false );
 
 	UFUNCTION( BlueprintCallable, Category = "SoundVisualize" )
-	static void LIBGenerateWaveform( UPARAM( ref ) TArray<uint8>& InData, UCustomMeshComponent* InComponent, bool DrawChannels = false, bool DrawAsCurve = false, int32 Width = 300, int32 Height = 100 );
+	static void LIBGenerateWaveform( UPARAM( ref ) TArray<uint8>& InData, UPARAM( ref ) FWaveformConfig& WConfig );
 	
 	/** Calculates the frequency spectrum for a window of time for the SoundWave
 	* @param InData - The waveData to generate the spectrum for
@@ -271,15 +330,30 @@ public:
 	UFUNCTION( BlueprintCallable, Category = "Scaling" )
 	static void LIBScaleGetScaled( UPARAM( ref ) FScaling& Scale, const float Value, float& ScaledValue );
 
-	UFUNCTION( BlueprintCallable, Category = "SoundVisualize" )
+	UFUNCTION( BlueprintCallable, Category = "Helper" )
 	static void LIBClearShareStorage( const int32 NewSize = 0 );
 
-	UFUNCTION( BlueprintCallable, Category = "SoundVisualize" )
+	UFUNCTION( BlueprintCallable, Category = "Helper" )
 	static void LIBSetShare( UPARAM( ref ) TArray<float>& DataToStore, const int32 Slot = 0 );
 
-	UFUNCTION( BlueprintCallable, Category = "SoundVisualize" )
+	UFUNCTION( BlueprintCallable, Category = "Helper" )
 	static void LIBGetShare( TArray<float>& StoredData, const int32 Slot = 0 );
 
 	UFUNCTION( BlueprintCallable, Category = "Helper" )
+	static void LIBGetShareSingle( float& Out, const int32 Slot = 0, const int32 Index = 5 );
+
+	UFUNCTION( BlueprintCallable, Category = "Helper" )
 	static void LIBArrayMultiply( const TArray<float>& FirstArray, const TArray<float>& SecondArray, TArray<float>& ResultArray );
+
+	UFUNCTION( BlueprintCallable, Category = "Helper" )
+	static void LIBNormalized( const float Value, float &NormalizedValue, const float ScaleMin = 0.f, const float ScaleMax = 1.f, const float Min = 0.f, const float Max = 100.f );
+
+	UFUNCTION( BlueprintCallable, Category = "SoundVisualize" )
+	static void LIBCalculateWAVData( int32 Channel, float StartTime, float TimeLength, int32 SpectrumWidth, FString WAVName, int32 Slot );
+
+	UFUNCTION( BlueprintCallable, Category = "Helper" )
+	static void LIBUpdateWaveformCurser( UStaticMeshComponent* Target, float Duration, float PlayTime, int32 Radius, FRotator RotOffset, FVector PosOffset );
+
+	UFUNCTION( BlueprintCallable, Category = "Helper" )
+	static void LIBUpdateWaveformSelf( UCustomMeshComponent* Target, float Duration, float PlayTime );
 };
