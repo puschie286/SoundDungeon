@@ -47,10 +47,7 @@ void AJukeBox::BeginPlay()
 
 void AJukeBox::EnablePower()
 {
-	if( ActionStates == 0 )
-	{
-		ActivateObject( 0 );
-	}
+	ActivateObject( 0 );
 }
 
 void AJukeBox::DropPart( int32 part )
