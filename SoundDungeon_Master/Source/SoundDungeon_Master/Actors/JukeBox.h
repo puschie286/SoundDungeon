@@ -6,6 +6,8 @@
 
 #include "JukeBox.generated.h"
 
+class USoundWave;
+class AActor;
 
 /**
  * 
@@ -24,34 +26,34 @@ public: // Properties
 	class ASoundSource*		SoundSource;
 
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
-	class USoundWave*		ErrorSound1;
+	USoundWave*		ErrorSound1;
 
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
-	class USoundWave*		ErrorSound2;
+	USoundWave*		ErrorSound2;
 
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
-	class USoundWave*		ErrorSound3;
+	USoundWave*		ErrorSound3;
 
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
-	class USoundWave*		MainSound;
+	USoundWave*		MainSound;
 
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
-	class USoundWave*		SoundPart1;
+	USoundWave*		SoundPart1;
 
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
-	class USoundWave*		SoundPart2;
+	USoundWave*		SoundPart2;
 
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
-	class USoundWave*		SoundPart3;
+	USoundWave*		SoundPart3;
 
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
-	class AActor*			DropPart1;
+	AActor*			DropPart1;
 
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
-	class AActor*			DropPart2;
+	AActor*			DropPart2;
 
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
-	class AActor*			DropPart3;
+	AActor*			DropPart3;
 
 public : // Functions
 	virtual bool	Action( AActor* Target ) override;
