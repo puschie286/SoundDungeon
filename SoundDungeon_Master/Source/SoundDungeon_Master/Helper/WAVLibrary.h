@@ -311,7 +311,7 @@ public:
 	* @return OutSpectrum - The resulting spectrum
 	*/
 	UFUNCTION( BlueprintCallable, Category = "SoundVisualize" )
-	static void LIBCalculateFrequencySpectrum( int32 Channel, float StartTime, float TimeLength, int32 SpectrumWidth, UPARAM( ref ) TArray<uint8>& InData, TArray<float> &OutSpectrum );
+	static void LIBCalculateFrequencySpectrum( int32 Channel, float StartTime, float TimeLength, int32 SpectrumWidth, FString WAVName, TArray<float> &OutSpectrum );
 	
 	/** Gathers the amplitude of the wave data for a window of time for the SoundWave
 	* @param InData - The waveData to get samples from
@@ -322,7 +322,7 @@ public:
 	* @return OutAmplitudes - The resulting amplitudes
 	*/
 	UFUNCTION( BlueprintCallable, Category = "SoundVisualize" )
-	static void LIBGetAmplitude( int32 Channel, float StartTime, float TimeLength, int32 AmplitudeBuckets, UPARAM( ref ) TArray<uint8>& InData, TArray<float> &OutAmplitudes );
+	static void LIBGetAmplitude( int32 Channel, float StartTime, float TimeLength, int32 AmplitudeBuckets, FString WAVName, TArray<float> &OutAmplitudes );
 
 	UFUNCTION( BlueprintCallable, Category = "Scaling" )
 	static void LIBScaleAddValue( UPARAM( ref ) FScaling& Scale, const float Value );

@@ -37,12 +37,14 @@ class SOUNDDUNGEON_MASTER_API ADebugVisualizeHUD : public AHUD
 
 	FVector2D ScreenSize;
 
-	bool bInit;
+	int32 SizeWidth;
 
 protected:
+	/* Show/Hide Graph */
 	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = "DebugHUD" )
 	bool bDrawGraph;
 
+	/* Get Each Frame SharedData 0 */
 	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = "DebugHUD" )
 	bool bAutoUpdate;
 
@@ -50,13 +52,15 @@ protected:
 	UPROPERTY( EditDefaultsOnly, BlueprintReadOnly, Category = "DebugHUD" )
 	float GraphLength;
 
+	/* Height in % of Screen Height */
 	UPROPERTY( EditDefaultsOnly, BlueprintReadOnly, Category = "DebugHUD" )
-	int32 GraphHeight;
+	float GraphHeight;
 
+	/* Width in % of Screen Width */
 	UPROPERTY( EditDefaultsOnly, BlueprintReadOnly, Category = "DebugHUD" )
-	int32 GraphWidth;
+	float GraphWidth;
 
-	class UWAVLibrary*					WavLibRef;
+	class UWAVLibrary* WavLibRef;
 
 public:
 	ADebugVisualizeHUD( const FObjectInitializer& ObjectInitializer );
@@ -64,11 +68,13 @@ public:
 	/* Draw Call for HUD */
 	virtual void DrawHUD() override;
 
+	/* Init Data */
+	virtual void BeginPlay() override;
+
 public:
 	UFUNCTION( BlueprintCallable, Category = "DebugHUD" )
 	void AddValue( float NewValue );
 
 private:
 	void UpdateStorage();
-	void Init();
 };
