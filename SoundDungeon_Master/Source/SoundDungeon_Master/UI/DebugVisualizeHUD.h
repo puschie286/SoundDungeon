@@ -3,9 +3,26 @@
 #include "GameFramework/HUD.h"
 
 #include "Containers/Map.h"
+#include <forward_list>
 
 #include "DebugVisualizeHUD.generated.h"
 
+struct Data
+{
+	double Time;
+	float Value;
+
+	Data( double fTime, float fValue )
+	{
+		Time = fTime;
+		Value = fValue;
+	}
+	Data()
+	{
+		Time = 0.f;
+		Value = 0.f;
+	}
+};
 /**
  * 
  */
@@ -14,21 +31,22 @@ class SOUNDDUNGEON_MASTER_API ADebugVisualizeHUD : public AHUD
 {
 	GENERATED_BODY()
 
-	TMap<float,float> Storage;
+	std::forward_list<Data> Storage;
 
 	FScaling InputScale;
 
 	FVector2D ScreenSize;
 
 	bool bInit;
+
 protected:
-	
 	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = "DebugHUD" )
 	bool bDrawGraph;
 
 	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = "DebugHUD" )
 	bool bAutoUpdate;
 
+	/* Length in Seconds */
 	UPROPERTY( EditDefaultsOnly, BlueprintReadOnly, Category = "DebugHUD" )
 	float GraphLength;
 

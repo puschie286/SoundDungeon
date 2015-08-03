@@ -14,8 +14,6 @@ ADebugVisualizeHUD::ADebugVisualizeHUD( const FObjectInitializer& ObjectInitiali
 	InputScale.MinScale = 0.f;
 	InputScale.MaxScale = GraphHeight - 10;
 
-	Storage.Empty( /* 100 */ );
-
 	WavLibRef = UWAVLibrary::GetInstance();
 	bInit = false;
 }
@@ -37,15 +35,14 @@ void ADebugVisualizeHUD::DrawHUD()
 		UpdateStorage();
 
 		FCanvasLineItem LineItem;
-
 		FVector LastPoint = FVector( 0.f, 0.f, 0.f );
-		float Time = (float)FPlatformTime::Seconds();
-
+		
+		//UE_LOG( LogTemp, Log, TEXT( "Start Draw" ) );
 		for( auto& Element : Storage )
 		{
 			LineItem.Origin = LastPoint;
-			LineItem.EndPos = FVector( GraphWidth - ( ( Time - Element.Key ) / GraphLength ) * GraphWidth, Element.Value, 0.f );
-			UE_LOG( LogTemp, Log, TEXT( "X Position : %f" ), GraphWidth - ( ( Time - Element.Key ) / GraphLength ) * GraphWidth );
+			LineItem.EndPos = FVector( GraphWidth - ( ( FPlatformTime::Seconds() - Element.Time ) / GraphLength ) * GraphWidth, Element.Value, 0.f );
+			//UE_LOG( LogTemp, Log, TEXT( "X Position : %f, Distance : %d" ), LineItem.EndPos.X, Time );
 			LastPoint = LineItem.EndPos;
 			Canvas->DrawItem( LineItem );
 		}
@@ -55,28 +52,23 @@ void ADebugVisualizeHUD::DrawHUD()
 void ADebugVisualizeHUD::AddValue( float NewValue )
 {
 	InputScale.AddValue( NewValue );
-	Storage.Add( FPlatformTime::Seconds(), InputScale.GetScaled( NewValue ) );
-	UE_LOG( LogTemp, Log, TEXT( "Add Value %f - ( Time : %f ) Elements : %d" ), InputScale.GetScaled( NewValue ), FPlatformTime::Seconds(), Storage.Num() );
+	Data Values( FPlatformTime::Seconds(), InputScale.GetScaled( NewValue ) );
+	Storage.push_front( Values );
+	//UE_LOG( LogTemp, Log, TEXT( "Add Value %f - ( Time : %d ) Elements : %d" ), InputScale.GetScaled( NewValue ), FPlatformTime::Seconds(), std::distance( Storage.begin(), Storage.end() ) );
 }
 
 void ADebugVisualizeHUD::UpdateStorage()
 {
-	float LastEntryTime = FPlatformTime::Seconds() - GraphLength;
+	double LastEntryTime = FPlatformTime::Seconds() - GraphLength;
 	
-	for( auto& Elements : Storage )
+	for( auto StorageIT = Storage.begin(); StorageIT != Storage.end(); ++StorageIT )
 	{
-		if( Elements.Key < LastEntryTime )
+		if( (*StorageIT).Time < LastEntryTime )
 		{
-			Storage.Remove( Elements.Key );
+			Storage.erase_after( StorageIT, Storage.end() );
+			break;
 		}
 	}
-
-	Storage.KeySort(
-		[]( float A, float B ) -> bool
-		{
-			return A > B;
-		}
-	);
 }
 
 void ADebugVisualizeHUD::Init()
