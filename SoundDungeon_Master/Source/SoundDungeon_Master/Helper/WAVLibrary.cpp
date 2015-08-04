@@ -570,7 +570,7 @@ void UWAVLibrary::GetAmplitude( const bool bSplitChannels, const float StartTime
 					uint32 FirstSample = *WaveInfo.pSamplesPerSec * StartTime;
 					uint32 LastSample = *WaveInfo.pSamplesPerSec * ( StartTime + TimeLength );
 
-					SampleCount = WaveInfo.SampleDataSize / ( 2 * 2 );
+					SampleCount = WaveInfo.SampleDataSize / 4;
 
 					FirstSample = FMath::Min( SampleCount, FirstSample );
 					LastSample = FMath::Min( SampleCount, LastSample );
