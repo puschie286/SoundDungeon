@@ -37,9 +37,8 @@ void ADebugVisualizeHUD::DrawHUD()
 {
 	if( bAutoUpdate )
 	{
-		// Add different Modes
 		float Data;
-		WavLibRef->GetShareSingle( Data );
+		WavLibRef->GetShareSingle( Data, Slot, Index );
 		AddValue( Data );
 	}
 
@@ -50,12 +49,10 @@ void ADebugVisualizeHUD::DrawHUD()
 		FCanvasLineItem LineItem;
 		FVector LastPoint = FVector( SizeWidth, 0.f, 0.f );
 		
-		//UE_LOG( LogTemp, Log, TEXT( "Start Draw" ) );
 		for( auto& Element : Storage )
 		{
 			LineItem.Origin = LastPoint;
 			LineItem.EndPos = FVector( SizeWidth - ( ( FPlatformTime::Seconds() - Element.Time ) / GraphLength ) * SizeWidth, Element.Value, 0.f );
-			//UE_LOG( LogTemp, Log, TEXT( "X Position : %f, Distance : %d" ), LineItem.EndPos.X, Time );
 			LastPoint = LineItem.EndPos;
 			Canvas->DrawItem( LineItem );
 		}
@@ -64,10 +61,8 @@ void ADebugVisualizeHUD::DrawHUD()
 
 void ADebugVisualizeHUD::AddValue( float NewValue )
 {
-	InputScale.AddValue( NewValue );
 	Data Values( FPlatformTime::Seconds(), InputScale.GetScaled( NewValue ) );
 	Storage.push_front( Values );
-	UE_LOG( LogTemp, Log, TEXT( "Value %f added" ), NewValue );
 }
 
 void ADebugVisualizeHUD::UpdateStorage()
@@ -83,4 +78,3 @@ void ADebugVisualizeHUD::UpdateStorage()
 		}
 	}
 }
-
