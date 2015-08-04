@@ -2,8 +2,9 @@
 
 #include "GameFramework/HUD.h"
 
-#include "Containers/Map.h"
 #include <forward_list>
+
+#include "../Helper/WAVLibrary.h"
 
 #include "DebugVisualizeHUD.generated.h"
 
@@ -23,6 +24,7 @@ struct Data
 		Value = 0.f;
 	}
 };
+
 /**
  * 
  */
@@ -32,8 +34,6 @@ class SOUNDDUNGEON_MASTER_API ADebugVisualizeHUD : public AHUD
 	GENERATED_BODY()
 
 	std::forward_list<Data> Storage;
-
-	FScaling InputScale;
 
 	FVector2D ScreenSize;
 
@@ -59,6 +59,15 @@ protected:
 	/* Width in % of Screen Width */
 	UPROPERTY( EditDefaultsOnly, BlueprintReadOnly, Category = "DebugHUD" )
 	float GraphWidth;
+
+	UPROPERTY( EditDefaultsOnly, BlueprintReadOnly, Category = "DebugHUD" )
+	FScaling InputScale;
+
+	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = "DebugHUD" )
+	int32 Slot;
+
+	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = "DebugHUD" )
+	int32 Index;
 
 	class UWAVLibrary* WavLibRef;
 
