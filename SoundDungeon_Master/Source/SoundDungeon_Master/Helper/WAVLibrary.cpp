@@ -664,12 +664,10 @@ void UWAVLibrary::CalculateWAVData( int32 Channel, float StartTime, float TimeLe
 	}
 	if( WAVLoaded )
 	{
-		TArray<uint8> *WAVData = GetWAV( *( WAVName ) );
 		TArray<float> *SlotData = &ShareStorage[Slot];
 		TArray<float> Data0, Data1;
-
-		LIBCalculateFrequencySpectrum( Channel, StartTime, TimeLength, SpectrumWidth, *WAVData, Data0 );
-		LIBGetAmplitude( Channel, StartTime, TimeLength, SpectrumWidth, *WAVData, Data1 );
+		LIBCalculateFrequencySpectrum( Channel, StartTime, TimeLength, SpectrumWidth, WAVName, Data0 );
+		LIBGetAmplitude( Channel, StartTime, TimeLength, SpectrumWidth, WAVName, Data1 );
 
 		if( SlotData->Num() != SpectrumWidth )
 		{
@@ -717,68 +715,84 @@ void UWAVLibrary::LIBGenerateWaveform( TArray<uint8>& InData, FWaveformConfig& W
 	GetInstance()->GenerateWaveform( &InData, &WConfig );
 }
 
-void UWAVLibrary::LIBCalculateFrequencySpectrum( int32 Channel, float StartTime, float TimeLength, int32 SpectrumWidth, TArray<uint8>& InData, TArray<float> &OutSpectrum )
+void UWAVLibrary::LIBCalculateFrequencySpectrum( int32 Channel, float StartTime, float TimeLength, int32 SpectrumWidth, FString WAVName, TArray<float> &OutSpectrum )
 {
 	OutSpectrum.Empty();
-	// Adjust Parameters
-	if( SpectrumWidth <= 0 )
+	bool WAVLoaded = true;
+	if( !GetInstance()->IsLoadedWAV( *( WAVName ) ) )
 	{
-		UE_LOG( LogTemp, Warning, TEXT( "Adjust SpectrumWidth from %i to 1" ), SpectrumWidth );
-		SpectrumWidth = 1;
+		WAVLoaded = GetInstance()->LoadWAV( *( WAVName ) );
 	}
-	if( Channel < 0 || Channel > 2 )
+	if( WAVLoaded )
 	{
-		UE_LOG( LogTemp, Warning, TEXT( "Adjust Channel from %i to 2" ), Channel );
-		Channel = 2;
-	}
-	if( StartTime <= 0.f )
-	{
-		UE_LOG( LogTemp, Warning, TEXT("Adjust StartTime from %d to 0.01"), StartTime );
-		StartTime = 0.01f;
-	}
-	// Call
-	TArray<TArray<float>> Spectrums;
-
-	GetInstance()->CalculateFrequencySpectrum( ( Channel != 0 ), StartTime, TimeLength, SpectrumWidth, &InData, Spectrums );
-	// Output
-	if( Spectrums.Num() != 0 )
-	{
-		if( Channel == 0 )
+		// Adjust Parameters
+		if( SpectrumWidth <= 0 )
 		{
-			OutSpectrum = Spectrums[0];
+			UE_LOG( LogTemp, Warning, TEXT( "Adjust SpectrumWidth from %i to 1" ), SpectrumWidth );
+			SpectrumWidth = 1;
 		}
-		else
+		if( Channel < 0 || Channel > 2 )
 		{
-			OutSpectrum = Spectrums[Channel - 1];
+			UE_LOG( LogTemp, Warning, TEXT( "Adjust Channel from %i to 2" ), Channel );
+			Channel = 2;
+		}
+		if( StartTime <= 0.f )
+		{
+			UE_LOG( LogTemp, Warning, TEXT( "Adjust StartTime from %d to 0.01" ), StartTime );
+			StartTime = 0.01f;
+		}
+		// Call
+		TArray<TArray<float>> Spectrums;
+
+		GetInstance()->CalculateFrequencySpectrum( ( Channel != 0 ), StartTime, TimeLength, SpectrumWidth, GetInstance()->GetWAV( *( WAVName ) ), Spectrums );
+		// Output
+		if( Spectrums.Num() != 0 )
+		{
+			if( Channel == 0 )
+			{
+				OutSpectrum = Spectrums[0];
+			}
+			else
+			{
+				OutSpectrum = Spectrums[Channel - 1];
+			}
 		}
 	}
 }
 
-void UWAVLibrary::LIBGetAmplitude( int32 Channel, float StartTime, float TimeLength, int32 AmplitudeBuckets, TArray<uint8>& InData, TArray<float> &OutAmplitudes )
+void UWAVLibrary::LIBGetAmplitude( int32 Channel, float StartTime, float TimeLength, int32 AmplitudeBuckets, FString WAVName, TArray<float> &OutAmplitudes )
 {
 	OutAmplitudes.Empty();
-	// Adjust Parameters
-	if( StartTime <= 0.f )
+	bool WAVLoaded = true;
+	if( !GetInstance()->IsLoadedWAV( *( WAVName ) ) )
 	{
-		UE_LOG( LogTemp, Warning, TEXT( "Adjust StartTime from %d to 0.01s" ), StartTime );
-		StartTime = 0.01f;
+		WAVLoaded = GetInstance()->LoadWAV( *( WAVName ) );
 	}
-	if( Channel < 0 || Channel > 2 )
+	if( WAVLoaded )
 	{
-		UE_LOG( LogTemp, Warning, TEXT( "Adjust Channel from %i to 2" ), Channel );
-		Channel = 2;
-	}
-	// Call
-	TArray<TArray<float>> Amplitudes;
-	GetInstance()->GetAmplitude( ( Channel != 0 ), StartTime, TimeLength, AmplitudeBuckets, &InData, Amplitudes );
-	// Output
-	if( Channel == 0 )
-	{
-		OutAmplitudes = Amplitudes[0];
-	}
-	else
-	{
-		OutAmplitudes = Amplitudes[Channel - 1];
+		// Adjust Parameters
+		if( StartTime <= 0.f )
+		{
+			UE_LOG( LogTemp, Warning, TEXT( "Adjust StartTime from %d to 0.01s" ), StartTime );
+			StartTime = 0.01f;
+		}
+		if( Channel < 0 || Channel > 2 )
+		{
+			UE_LOG( LogTemp, Warning, TEXT( "Adjust Channel from %i to 2" ), Channel );
+			Channel = 2;
+		}
+		// Call
+		TArray<TArray<float>> Amplitudes;
+		GetInstance()->GetAmplitude( ( Channel != 0 ), StartTime, TimeLength, AmplitudeBuckets, GetInstance()->GetWAV( *( WAVName ) ), Amplitudes );
+		// Output
+		if( Channel == 0 )
+		{
+			OutAmplitudes = Amplitudes[0];
+		}
+		else
+		{
+			OutAmplitudes = Amplitudes[Channel - 1];
+		}
 	}
 }
 

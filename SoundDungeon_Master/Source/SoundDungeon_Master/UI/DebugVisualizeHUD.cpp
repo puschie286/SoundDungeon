@@ -8,22 +8,33 @@ ADebugVisualizeHUD::ADebugVisualizeHUD( const FObjectInitializer& ObjectInitiali
 	bAutoUpdate = false;
 	GraphLength = 5.f;
 
-	GraphHeight = 500;
-	GraphWidth = 1000;
+	GraphHeight = 50.f;
+	GraphWidth = 50.f;
+	
+	SizeWidth = 600;
 
 	InputScale.MinScale = 0.f;
-	InputScale.MaxScale = GraphHeight - 10;
-
-	Storage.Empty( /* 100 */ );
+	InputScale.MaxScale = 300.f - 10;
 
 	WavLibRef = UWAVLibrary::GetInstance();
-	bInit = false;
+}
+
+void ADebugVisualizeHUD::BeginPlay() 
+{
+	Super::BeginPlay();
+
+	ScreenSize = GEngine->GameViewport->Viewport->GetSizeXY();
+
+	SizeWidth = ScreenSize.X * ( GraphWidth / 100 );
+
+	InputScale.MinScale = 0.f;
+	InputScale.MaxScale = ScreenSize.Y * ( GraphHeight / 100 );
+
+	WavLibRef = UWAVLibrary::GetInstance();
 }
 
 void ADebugVisualizeHUD::DrawHUD()
 {
-	Init();
-
 	if( bAutoUpdate )
 	{
 		// Add different Modes
@@ -37,15 +48,14 @@ void ADebugVisualizeHUD::DrawHUD()
 		UpdateStorage();
 
 		FCanvasLineItem LineItem;
-
-		FVector LastPoint = FVector( 0.f, 0.f, 0.f );
-		float Time = (float)FPlatformTime::Seconds();
-
+		FVector LastPoint = FVector( SizeWidth, 0.f, 0.f );
+		
+		//UE_LOG( LogTemp, Log, TEXT( "Start Draw" ) );
 		for( auto& Element : Storage )
 		{
 			LineItem.Origin = LastPoint;
-			LineItem.EndPos = FVector( GraphWidth - ( ( Time - Element.Key ) / GraphLength ) * GraphWidth, Element.Value, 0.f );
-			UE_LOG( LogTemp, Log, TEXT( "X Position : %f" ), GraphWidth - ( ( Time - Element.Key ) / GraphLength ) * GraphWidth );
+			LineItem.EndPos = FVector( SizeWidth - ( ( FPlatformTime::Seconds() - Element.Time ) / GraphLength ) * SizeWidth, Element.Value, 0.f );
+			//UE_LOG( LogTemp, Log, TEXT( "X Position : %f, Distance : %d" ), LineItem.EndPos.X, Time );
 			LastPoint = LineItem.EndPos;
 			Canvas->DrawItem( LineItem );
 		}
@@ -55,36 +65,22 @@ void ADebugVisualizeHUD::DrawHUD()
 void ADebugVisualizeHUD::AddValue( float NewValue )
 {
 	InputScale.AddValue( NewValue );
-	Storage.Add( FPlatformTime::Seconds(), InputScale.GetScaled( NewValue ) );
-	UE_LOG( LogTemp, Log, TEXT( "Add Value %f - ( Time : %f ) Elements : %d" ), InputScale.GetScaled( NewValue ), FPlatformTime::Seconds(), Storage.Num() );
+	Data Values( FPlatformTime::Seconds(), InputScale.GetScaled( NewValue ) );
+	Storage.push_front( Values );
+	UE_LOG( LogTemp, Log, TEXT( "Value %f added" ), NewValue );
 }
 
 void ADebugVisualizeHUD::UpdateStorage()
 {
-	float LastEntryTime = FPlatformTime::Seconds() - GraphLength;
+	double LastEntryTime = FPlatformTime::Seconds() - GraphLength;
 	
-	for( auto& Elements : Storage )
+	for( auto StorageIT = Storage.begin(); StorageIT != Storage.end(); ++StorageIT )
 	{
-		if( Elements.Key < LastEntryTime )
+		if( (*StorageIT).Time < LastEntryTime )
 		{
-			Storage.Remove( Elements.Key );
+			Storage.erase_after( StorageIT, Storage.end() );
+			break;
 		}
 	}
-
-	Storage.KeySort(
-		[]( float A, float B ) -> bool
-		{
-			return A > B;
-		}
-	);
 }
 
-void ADebugVisualizeHUD::Init()
-{
-	if( !bInit )
-	{
-		ScreenSize = GEngine->GameViewport->Viewport->GetSizeXY();
-
-		bInit = true;
-	}
-}
