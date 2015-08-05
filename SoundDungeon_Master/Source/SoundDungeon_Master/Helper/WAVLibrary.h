@@ -268,6 +268,8 @@ public:
 
 	bool GenerateWaveform( TArray<uint8>* WavPtr, FWaveformConfig* WConfig );
 
+	bool GenerateTube( TArray<uint8>* WavPtr, FWaveformConfig* WConfig );
+
 	void CalculateFrequencySpectrum( const bool bSplitChannels, const float StartTime, const float TimeLength, const int32 SpectrumWidth, TArray<uint8>* InWavPtr, TArray<TArray<float>> &OutSpectrum );
 
 	void GetAmplitude( const bool bSplitChannels, const float StartTime, const float TimeLength, const int32 AmplitudeBuckets, TArray<uint8>* InWavPtr, TArray<TArray<float>>& OutAmplitudes );
@@ -301,7 +303,10 @@ public:
 
 	UFUNCTION( BlueprintCallable, Category = "SoundVisualize" )
 	static void LIBGenerateWaveform( UPARAM( ref ) TArray<uint8>& InData, UPARAM( ref ) FWaveformConfig& WConfig );
-	
+
+	UFUNCTION( BlueprintCallable, Category = "SoundVisualize" )
+	static void LIBGenerateTube( UPARAM( ref ) TArray<uint8>& InData, UPARAM( ref ) FWaveformConfig& WConfig );
+
 	/** Calculates the frequency spectrum for a window of time for the SoundWave
 	* @param InData - The waveData to generate the spectrum for
 	* @param Channel - The channel of the sound to calculate.  Specify 0 to combine channels together
