@@ -1,5 +1,3 @@
-
-
 #pragma once
 
 #include "Engine/StaticMeshActor.h"
@@ -15,6 +13,4 @@ class SOUNDDUNGEON_MASTER_API ABaseTubeCube : public AStaticMeshActor
 	
 public:
 	ABaseTubeCube( const FObjectInitializer& ObjectInitializer );
-	
-	
 };

@@ -355,7 +355,7 @@ bool UWAVLibrary::GenerateWaveform( TArray<uint8>* WavPtr, FWaveformConfig* WCon
 	return false;
 }
 
-bool UWAVLibrary::GenerateTube( TArray<uint8>* WavPtr, FWaveformConfig* WConfig, AActor* BaseCube )
+bool UWAVLibrary::GenerateTube( TArray<uint8>* WavPtr, FWaveformConfig* WConfig, AActor* Owner, TArray<AActor*>& ActorList )
 {
 	if( WavPtr != NULL )
 	{
@@ -365,7 +365,7 @@ bool UWAVLibrary::GenerateTube( TArray<uint8>* WavPtr, FWaveformConfig* WConfig,
 		FWaveModInfo WaveInfo;
 
 		// parse the wave data
-		if( WaveInfo.ReadWaveHeader( RawWaveData, RawDataSize, 0 ) )
+		if( WaveInfo.ReadWaveHeader( RawWaveData, RawDataSize, 0 ) && Owner->GetWorld() )
 		{
 			const float SampleYScale = WConfig->Height / 65534.f;
 
@@ -379,14 +379,23 @@ bool UWAVLibrary::GenerateTube( TArray<uint8>* WavPtr, FWaveformConfig* WConfig,
 			const uint32 SamplesPerX = ( SampleCount / WConfig->Width ) + 1;
 			float LastScaledSample[10] = { 0.f };
 
-			//const float RoundStep = 2 * PI / WConfig->Width;
-			//float LastRCos = WConfig->Radius;
-			//float LastRSin = 0.f;
+			const int8 Parts = 8;
+			const float RoundStep = 2 * PI / Parts;
+			int32 RadiusState = 0;
+			float LastRSin = 0.f;
 
 			for( int32 XOffset = 0; XOffset < WConfig->Width - 1; ++XOffset )
 			{
-				//const float RCos = FMath::Cos( RoundStep * ( XOffset + 1 ) ) * WConfig->Radius;
-				//const float RSin = FMath::Sin( RoundStep * ( XOffset + 1 ) ) * WConfig->Radius;
+				RadiusState += FMath::RandRange( -1, 1 );
+				if( RadiusState >= Parts )
+				{
+					RadiusState -= Parts;
+				}
+				else if( RadiusState < 0 )
+				{
+					RadiusState += Parts;
+				}
+				const float RSin = FMath::Sin( RoundStep * RadiusState ) * WConfig->Radius;
 				int64 SampleSum[10] = { 0 };
 
 				for( uint32 PerXSampleIndex = 0; PerXSampleIndex < SamplesPerX; ++PerXSampleIndex )
@@ -405,23 +414,27 @@ bool UWAVLibrary::GenerateTube( TArray<uint8>* WavPtr, FWaveformConfig* WConfig,
 					const float ScaledSample = SampleSum[ChannelIndex] / SamplesPerX * SampleYScale;
 					MaxScaledSample = FMath::Max( MaxScaledSample, ScaledSample );
 				}
-				if( MaxScaledSample > 0.001f )
+				if( MaxScaledSample > 0.01f )
 				{
 					const float YCentre = 0.5f * WConfig->Height;
-					ABaseTubeCube* Temp = Cast<ABaseTubeCube>( BaseCube->GetWorld()->SpawnActor( ABaseTubeCube::StaticClass() ) );
+
+					ABaseTubeCube* Temp = Cast<ABaseTubeCube>( Owner->GetWorld()->SpawnActor( ABaseTubeCube::StaticClass() ) );
 					if( Temp )
 					{
-						Temp->AttachRootComponentToActor( BaseCube );
+						Temp->AttachRootComponentToActor( Owner );
 						Temp->SetActorRelativeScale3D( FVector( 0.1f, MaxScaledSample / 10.f, 0.1f ) );
-						Temp->SetActorRelativeLocation( FVector( ( XOffset + 1 ) * -50.f, 0.f, 0.f ) );
+						Temp->SetActorRelativeLocation( FVector( ( XOffset + 1 ) * -50.f, RSin, RSin ) );
+						//Temp->SetActorRelativeRotation( FRotator() );
+						ActorList.Add( Temp );
 					}
 					//GenerateLine( TriangleList, FVector( LastRCos, YCentre - MaxScaledSample, LastRSin ), FVector( RCos, YCentre + MaxScaledSample, RSin ), WConfig->DrawFull );
 				}
 				//LastRCos = RCos;
-				//LastRSin = RSin;
+				LastRSin = RSin;
 			}
+			return true;
 		}
-		return true;
+		
 	}
 	else if( bUseLog )
 	{
@@ -787,9 +800,9 @@ void UWAVLibrary::LIBGenerateWaveform( TArray<uint8>& InData, FWaveformConfig& W
 	GetInstance()->GenerateWaveform( &InData, &WConfig );
 }
 
-void UWAVLibrary::LIBGenerateTube( TArray<uint8>& InData, FWaveformConfig& WConfig, AActor* BaseCube )
+void UWAVLibrary::LIBGenerateTube( TArray<uint8>& InData, FWaveformConfig& WConfig, AActor* Owner, TArray<AActor*>& ActorList )
 {
-	GetInstance()->GenerateTube( &InData, &WConfig, BaseCube );
+	GetInstance()->GenerateTube( &InData, &WConfig, Owner, ActorList );
 }
 
 void UWAVLibrary::LIBCalculateFrequencySpectrum( int32 Channel, float StartTime, float TimeLength, int32 SpectrumWidth, FString WAVName, TArray<float> &OutSpectrum )
