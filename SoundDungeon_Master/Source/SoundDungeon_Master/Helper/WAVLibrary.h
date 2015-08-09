@@ -251,7 +251,6 @@ private:
 	bool CheckStorageContain( FName Name );
 
 public:
-
 	static UWAVLibrary* GetInstance();
 
 	bool LoadWAV( FName WAVName );

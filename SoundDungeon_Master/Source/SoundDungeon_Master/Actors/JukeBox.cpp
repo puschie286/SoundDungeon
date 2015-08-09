@@ -6,7 +6,9 @@ AJukeBox::AJukeBox( const FObjectInitializer& ObjectInit )
 {
 	this->Tags.Add( FName( TEXT( "InteractiveAble" ) ) );
 
-	SoundSource = nullptr;
+	SoundSource1 = nullptr;
+	SoundSource2 = nullptr;
+	SoundSource3 = nullptr;
 	ErrorSound1 = nullptr;
 	ErrorSound2 = nullptr;
 	ErrorSound3 = nullptr;
@@ -14,6 +16,9 @@ AJukeBox::AJukeBox( const FObjectInitializer& ObjectInit )
 	SoundPart1 = nullptr;
 	SoundPart2 = nullptr;
 	SoundPart3 = nullptr;
+	Part1StartTime = 0.f;
+	Part2StartTime = 0.f;
+	Part3StartTime = 0.f;
 
 	ObjectsState.Init( false, 3 );
 
@@ -29,7 +34,7 @@ void AJukeBox::BeginPlay()
 	{
 		UE_LOG( LogTemp, Warning, TEXT( "No Character found" ) );
 	}
-	if( !SoundSource )
+	if( !SoundSource1 )
 	{
 		UE_LOG( LogTemp, Warning, TEXT( "No SoundSource set for JukeBox" ) );
 	}
@@ -133,25 +138,28 @@ bool AJukeBox::RoomFirstActionActive()
 	{
 		if( !ObjectsState[0] )
 		{
-			SoundSource->GetAudioComponent()->SetSound( ErrorSound1 );
+			SoundSource1->GetAudioComponent()->SetSound( ErrorSound1 );
 		}
 		else if( !ObjectsState[1] )
 		{
-			SoundSource->GetAudioComponent()->SetSound( ErrorSound2 );
+			SoundSource1->GetAudioComponent()->SetSound( ErrorSound2 );
 		}
 		else if( !ObjectsState[2] )
 		{
-			SoundSource->GetAudioComponent()->SetSound( ErrorSound3 );
+			SoundSource1->GetAudioComponent()->SetSound( ErrorSound3 );
 		}
 		else // All Objects insert
 		{
-			SoundSource->GetAudioComponent()->SetSound( MainSound );
-			SoundSource->PlaySound();
-			ActionStates++;
-			OnRoomFinish( 0 );
+			SoundSource1->GetAudioComponent()->SetSound( SoundPart1 );
+			SoundSource2->GetAudioComponent()->SetSound( SoundPart2 );
+			SoundSource3->GetAudioComponent()->SetSound( SoundPart3 );
+			SoundSource1->PlaySound( Part1StartTime );
+			SoundSource2->PlaySound( Part2StartTime );
+			SoundSource3->PlaySound( Part3StartTime );
+			OnRoomFinish( ActionStates++ );
 			return true;
 		}
-		SoundSource->PlaySound();
+		SoundSource1->PlaySound();
 	}
 	return false;
 }

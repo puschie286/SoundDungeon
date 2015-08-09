@@ -15,29 +15,10 @@ ATubeBase::ATubeBase()
 
 	WavName = "MainVocal";
 	Height = 100;
-	Width = 300;
-	Radius = 250;
+	Width = 30;
+	Radius = 190;
 
-	if( BucketList.Num() == 0 && GetWorld() )
-	{
-		UWAVLibrary* Instance = UWAVLibrary::GetInstance();
-
-		if( !Instance->IsLoadedWAV( *( WavName ) ) )
-		{
-			Instance->LoadWAV( *( WavName ) );
-		}
-		
-		TArray<uint8>* Data = Instance->GetWAV( *( WavName ) );
-
-		if( Data )
-		{
-			FWaveformConfig Config;
-			Config.Width = Width;
-			Config.Height = Height;
-			Config.Radius = Radius;
-			UWAVLibrary::GetInstance()->GenerateTube( Data, &Config, this, BucketList );
-		}
-	}
+	InitTube();
 }
 
 void ATubeBase::BeginPlay()
@@ -59,3 +40,27 @@ void ATubeBase::BeginDestroy()
 	}
 }
 */
+
+void ATubeBase::InitTube()
+{
+	UWAVLibrary* Instance = UWAVLibrary::GetInstance();
+
+	if( GetWorld() && BucketList.Num() == 0 )
+	{
+		if( !Instance->IsLoadedWAV( *( WavName ) ) )
+		{
+			Instance->LoadWAV( *( WavName ) );
+		}
+
+		TArray<uint8>* Data = Instance->GetWAV( *( WavName ) );
+
+		if( Data )
+		{
+			FWaveformConfig Config;
+			Config.Width = Width;
+			Config.Height = Height;
+			Config.Radius = Radius;
+			Instance->GenerateTube( Data, &Config, this, BucketList );
+		}
+	}
+}

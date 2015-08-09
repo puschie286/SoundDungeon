@@ -357,8 +357,19 @@ bool UWAVLibrary::GenerateWaveform( TArray<uint8>* WavPtr, FWaveformConfig* WCon
 
 bool UWAVLibrary::GenerateTube( TArray<uint8>* WavPtr, FWaveformConfig* WConfig, AActor* Owner, TArray<AActor*>& ActorList )
 {
-	if( WavPtr != NULL )
+	if( WavPtr && Owner )
 	{
+		if( ActorList.Num() != 0 )
+		{
+			for( auto& Actor : ActorList )
+			{
+				if( Actor && Actor->IsValidLowLevel() )
+				{
+					Actor->Destroy();
+				}
+			}
+			ActorList.Empty();
+		}
 		// Copy from ThumbnailRendering
 		uint8* RawWaveData = WavPtr->GetData();
 		int32 RawDataSize = WavPtr->Num();
@@ -382,7 +393,6 @@ bool UWAVLibrary::GenerateTube( TArray<uint8>* WavPtr, FWaveformConfig* WConfig,
 			const int8 Parts = 8;
 			const float RoundStep = 2 * PI / Parts;
 			int32 RadiusState = 0;
-			float LastRSin = 0.f;
 
 			for( int32 XOffset = 0; XOffset < WConfig->Width - 1; ++XOffset )
 			{
@@ -395,7 +405,8 @@ bool UWAVLibrary::GenerateTube( TArray<uint8>* WavPtr, FWaveformConfig* WConfig,
 				{
 					RadiusState += Parts;
 				}
-				const float RSin = FMath::Sin( RoundStep * RadiusState ) * WConfig->Radius;
+				const float RSin = FMath::Sin( RoundStep * RadiusState );
+				const float RCos = FMath::Cos( RoundStep * RadiusState ) * WConfig->Radius;
 				int64 SampleSum[10] = { 0 };
 
 				for( uint32 PerXSampleIndex = 0; PerXSampleIndex < SamplesPerX; ++PerXSampleIndex )
@@ -416,21 +427,41 @@ bool UWAVLibrary::GenerateTube( TArray<uint8>* WavPtr, FWaveformConfig* WConfig,
 				}
 				if( MaxScaledSample > 0.01f )
 				{
-					const float YCentre = 0.5f * WConfig->Height;
-
 					ABaseTubeCube* Temp = Cast<ABaseTubeCube>( Owner->GetWorld()->SpawnActor( ABaseTubeCube::StaticClass() ) );
 					if( Temp )
 					{
+						auto GetRot = []( int32 State ) -> int32
+						{
+							switch( State )
+							{
+								case 0 :
+									return 0;
+								case 1 :
+									return 45;
+								case 2 :
+									return 90;
+								case 3 :
+									return 135;
+								case 4 :
+									return 180;
+								case 5 :
+									return -135;
+								case 6 :
+									return -90;
+								case 7 :
+									return -45;
+								default :
+									return 0;
+
+							}
+						};
 						Temp->AttachRootComponentToActor( Owner );
 						Temp->SetActorRelativeScale3D( FVector( 0.1f, MaxScaledSample / 10.f, 0.1f ) );
-						Temp->SetActorRelativeLocation( FVector( ( XOffset + 1 ) * -50.f, RSin, RSin ) );
-						//Temp->SetActorRelativeRotation( FRotator() );
+						Temp->SetActorRelativeLocation( FVector( ( XOffset + 1 ) * -50.f, RSin * WConfig->Radius, RCos ) );
+						Temp->SetActorRelativeRotation( FRotator( 0.f, 0.f, GetRot( RadiusState ) ) );
 						ActorList.Add( Temp );
 					}
-					//GenerateLine( TriangleList, FVector( LastRCos, YCentre - MaxScaledSample, LastRSin ), FVector( RCos, YCentre + MaxScaledSample, RSin ), WConfig->DrawFull );
 				}
-				//LastRCos = RCos;
-				LastRSin = RSin;
 			}
 			return true;
 		}

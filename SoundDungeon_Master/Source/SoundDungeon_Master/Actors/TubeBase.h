@@ -9,7 +9,7 @@ class SOUNDDUNGEON_MASTER_API ATubeBase : public AActor
 	GENERATED_BODY()
 
 protected:
-	UPROPERTY( EditAnywhere, BlueprintReadWrite )
+	UPROPERTY()
 	TArray<AActor*> BucketList;
 
 	UPROPERTY( EditAnywhere, BlueprintReadWrite )
@@ -33,4 +33,7 @@ public:
 
 	// TODO : correct delete of BucketList Actors
 	//virtual void BeginDestroy() override;
+
+	UFUNCTION( BlueprintCallable, Category = "TubeBase" )
+	void InitTube();
 };
