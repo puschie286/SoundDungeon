@@ -5,4 +5,5 @@
 #include "Engine.h"
 #include "Actors/PlayerCharacter.h"
 #include "Actors/SoundSource.h"
+#include "Actors/BaseTubeCube.h"
 #include "Helper/WAVLibrary.h"
