@@ -5,7 +5,8 @@
 
 
 // Sets default values
-ATubeBase::ATubeBase()
+ATubeBase::ATubeBase( const FObjectInitializer& ObjectInitializer )
+	: Super( ObjectInitializer )
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
@@ -17,14 +18,17 @@ ATubeBase::ATubeBase()
 	Height = 100;
 	Width = 30;
 	Radius = 190;
-
-	InitTube();
+	bEnablePlayGeneration = true;
 }
 
 void ATubeBase::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	if( bEnablePlayGeneration )
+	{
+		InitTube();
+	}
 }
 
 /*
@@ -45,7 +49,7 @@ void ATubeBase::InitTube()
 {
 	UWAVLibrary* Instance = UWAVLibrary::GetInstance();
 
-	if( GetWorld() && BucketList.Num() == 0 )
+	if( GetWorld() )
 	{
 		if( !Instance->IsLoadedWAV( *( WavName ) ) )
 		{

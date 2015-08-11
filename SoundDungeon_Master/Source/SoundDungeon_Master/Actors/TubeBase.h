@@ -24,10 +24,13 @@ protected:
 	UPROPERTY( EditAnywhere, BlueprintReadWrite )
 	int32 Radius;
 	
+	UPROPERTY( EditAnywhere, BlueprintReadWrite )
+	bool bEnablePlayGeneration;
+	
 	class UStaticMeshComponent* MeshComponent;
 	
 public:	
-	ATubeBase();
+	ATubeBase( const FObjectInitializer& ObjectInitializer );
 
 	virtual void BeginPlay() override;	
 

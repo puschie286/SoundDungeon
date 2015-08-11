@@ -41,7 +41,7 @@ void APlayerCharacter::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
 
-	if( ++CheckCounter > CheckPeriod )
+	if( bRangeCheckEnabled && ++CheckCounter > CheckPeriod )
 	{
 		RangeCheck();
 		CheckCounter = 0;
