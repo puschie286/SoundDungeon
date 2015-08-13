@@ -26,6 +26,15 @@ protected:
 	
 	UPROPERTY( EditAnywhere, BlueprintReadWrite )
 	bool bEnablePlayGeneration;
+
+	UPROPERTY( EditAnywhere, BlueprintReadWrite )
+	class ASoundSource* SoundSource;
+
+	UPROPERTY( EditAnywhere, BlueprintReadWrite )
+	class USoundBase* CollideSound;
+
+	UPROPERTY( EditAnywhere, BlueprintReadOnly )
+	TSubclassOf<class ABaseTubeCube> CubeClass;
 	
 	class UStaticMeshComponent* MeshComponent;
 	

@@ -57,8 +57,15 @@ void APlayerCharacter::GrabObject()
 {
 	if( Target )
 	{
+		ReleaseObject();
 		GrabedTarget = Target;
 		GrabedTarget->DisableComponentsSimulatePhysics();
+
+		if( GrabedTarget->GetClass()->ImplementsInterface( USimpleAction::StaticClass() ) ) // Blueprint Imeplementation
+		{
+			bool Result;
+			ISimpleAction::Execute_Action( GrabedTarget, GrabedTarget, Result );
+		}
 	}
 }
 

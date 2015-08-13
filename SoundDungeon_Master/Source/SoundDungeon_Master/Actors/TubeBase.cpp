@@ -19,6 +19,10 @@ ATubeBase::ATubeBase( const FObjectInitializer& ObjectInitializer )
 	Width = 30;
 	Radius = 190;
 	bEnablePlayGeneration = true;
+
+	SoundSource = nullptr;
+	CollideSound = nullptr;
+	CubeClass = nullptr;
 }
 
 void ATubeBase::BeginPlay()
@@ -51,20 +55,13 @@ void ATubeBase::InitTube()
 
 	if( GetWorld() )
 	{
-		if( !Instance->IsLoadedWAV( *( WavName ) ) )
-		{
-			Instance->LoadWAV( *( WavName ) );
-		}
-
-		TArray<uint8>* Data = Instance->GetWAV( *( WavName ) );
-
-		if( Data )
+		if( Instance->IsLoadedWAV( *( WavName ) ) || Instance->LoadWAV( *( WavName ) ) )
 		{
 			FWaveformConfig Config;
 			Config.Width = Width;
 			Config.Height = Height;
 			Config.Radius = Radius;
-			Instance->GenerateTube( Data, &Config, this, BucketList );
+			Instance->GenerateTube( Instance->GetWAV( *( WavName ) ), &Config, this, BucketList, CubeClass );
 		}
 	}
 }

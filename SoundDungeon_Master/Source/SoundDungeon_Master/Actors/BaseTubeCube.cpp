@@ -11,4 +11,27 @@ ABaseTubeCube::ABaseTubeCube( const FObjectInitializer& ObjectInitializer )
 	MeshPtr->SetStaticMesh( BaseCube.Object );
 	MeshPtr->SetMobility( EComponentMobility::Movable );
 	MeshPtr->CastShadow = 0;
+	MeshPtr->SetCollisionProfileName( FName( TEXT( "Trigger" ) ) );
+	MeshPtr->bGenerateOverlapEvents = true;
+
+	RootComponent = MeshPtr;
+
+	ParentRef = nullptr;
+}
+
+void ABaseTubeCube::BeginPlay()
+{
+	Super::BeginPlay();
+
+	AActor* TubeBaseActor = GetAttachParentActor();
+
+	if( TubeBaseActor )
+	{
+		ParentRef = Cast<ATubeBase>( TubeBaseActor );
+
+		if( !ParentRef )
+		{
+			UE_LOG( LogTemp, Log, TEXT( "Cant find Parent" ) );
+		}
+	}
 }
