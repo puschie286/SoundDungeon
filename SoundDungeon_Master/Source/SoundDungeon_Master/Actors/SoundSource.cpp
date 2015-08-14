@@ -17,10 +17,13 @@ ASoundSource::ASoundSource( const FObjectInitializer &ObjectInitializer )
 void ASoundSource::PlaySound( float StartTime /*= 0.f */ )
 {
 	Duration = ( (USoundWave*)( GetAudioComponent()->Sound ) )->Duration;
-
-	StartStamp = FPlatformTime::Seconds() - FMath::Max( 0.f, StartTime );
-	LastUpdateStamp = StartStamp;
 	PlayTime = FMath::Max( 0.f, StartTime );
+	while( PlayTime > Duration )
+	{
+		PlayTime -= Duration;
+	}
+	StartStamp = FPlatformTime::Seconds() - PlayTime;
+	LastUpdateStamp = StartStamp;
 
 	GetAudioComponent()->Play( PlayTime );
 
