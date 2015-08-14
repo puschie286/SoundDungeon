@@ -16,6 +16,9 @@ AJukeBox::AJukeBox( const FObjectInitializer& ObjectInit )
 	SoundPart1 = nullptr;
 	SoundPart2 = nullptr;
 	SoundPart3 = nullptr;
+	SoundPart4 = nullptr;
+	SoundPart5 = nullptr;
+	SoundPart6 = nullptr;
 	Part1StartTime = 0.f;
 	Part2StartTime = 0.f;
 	Part3StartTime = 0.f;
@@ -121,9 +124,16 @@ bool AJukeBox::RoomAction( AActor* Target )
 			{
 				ActivateObject( i );
 				PlayerRef->DestroyObject();
-				if( ActionStates == 0 && i == 2 )
+				if( i == 2 )
 				{
-					return RoomFirstActionActive();
+					if( ActionStates == 0 )
+					{
+						return RoomFirstActionActive();
+					}
+					else if( ActionStates == 1 )
+					{
+						return RoomSecondActionActive();
+					}
 				}
 				return true;
 			}
@@ -166,6 +176,33 @@ bool AJukeBox::RoomFirstActionActive()
 
 bool AJukeBox::RoomSecondActionActive()
 {
+	if( ObjectsState.Num() >= 3 )
+	{
+		if( !ObjectsState[0] )
+		{
+			SoundSource1->GetAudioComponent()->SetSound( ErrorSound1 );
+		}
+		else if( !ObjectsState[1] )
+		{
+			SoundSource1->GetAudioComponent()->SetSound( ErrorSound2 );
+		}
+		else if( !ObjectsState[2] )
+		{
+			SoundSource1->GetAudioComponent()->SetSound( ErrorSound3 );
+		}
+		else
+		{
+			SoundSource1->GetAudioComponent()->SetSound( SoundPart4 );
+			SoundSource2->GetAudioComponent()->SetSound( SoundPart5 );
+			SoundSource3->GetAudioComponent()->SetSound( SoundPart6 );
+			SoundSource1->PlaySound( Part1StartTime );
+			SoundSource2->PlaySound( Part2StartTime );
+			SoundSource3->PlaySound( Part3StartTime );
+			OnRoomFinish( ActionStates++ );
+			return true;
+		}
+		SoundSource1->PlaySound();
+	}
 	return false;
 }
 

@@ -54,6 +54,15 @@ public: // Properties
 	USoundWave*		SoundPart3;
 
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
+	USoundWave*		SoundPart4;
+
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
+	USoundWave*		SoundPart5;
+
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
+	USoundWave*		SoundPart6;
+
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
 	float			Part1StartTime;
 
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
