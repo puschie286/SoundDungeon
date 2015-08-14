@@ -33,6 +33,9 @@ public: // Properties
 	ASoundSource*		SoundSource3;
 
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
+	ASoundSource*		ErrorSoundSource;
+
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
 	USoundWave*		ErrorSound1;
 
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )

@@ -12,6 +12,7 @@ AJukeBox::AJukeBox( const FObjectInitializer& ObjectInit )
 	ErrorSound1 = nullptr;
 	ErrorSound2 = nullptr;
 	ErrorSound3 = nullptr;
+	ErrorSoundSource = nullptr;
 	MainSound = nullptr;
 	SoundPart1 = nullptr;
 	SoundPart2 = nullptr;
@@ -37,9 +38,9 @@ void AJukeBox::BeginPlay()
 	{
 		UE_LOG( LogTemp, Warning, TEXT( "No Character found" ) );
 	}
-	if( !SoundSource1 )
+	if( !SoundSource1 || !SoundSource2 || !SoundSource3 || !ErrorSoundSource )
 	{
-		UE_LOG( LogTemp, Warning, TEXT( "No SoundSource set for JukeBox" ) );
+		UE_LOG( LogTemp, Warning, TEXT( "Not all SoundSources are set for JukeBox" ) );
 	}
 	if( !DropPart1 || !DropPart2 || !DropPart3 )
 	{
@@ -148,15 +149,15 @@ bool AJukeBox::RoomFirstActionActive()
 	{
 		if( !ObjectsState[0] )
 		{
-			SoundSource1->GetAudioComponent()->SetSound( ErrorSound1 );
+			ErrorSoundSource->GetAudioComponent()->SetSound( ErrorSound1 );
 		}
 		else if( !ObjectsState[1] )
 		{
-			SoundSource1->GetAudioComponent()->SetSound( ErrorSound2 );
+			ErrorSoundSource->GetAudioComponent()->SetSound( ErrorSound2 );
 		}
 		else if( !ObjectsState[2] )
 		{
-			SoundSource1->GetAudioComponent()->SetSound( ErrorSound3 );
+			ErrorSoundSource->GetAudioComponent()->SetSound( ErrorSound3 );
 		}
 		else // All Objects insert
 		{
@@ -169,7 +170,7 @@ bool AJukeBox::RoomFirstActionActive()
 			OnRoomFinish( ActionStates++ );
 			return true;
 		}
-		SoundSource1->PlaySound();
+		ErrorSoundSource->PlaySound();
 	}
 	return false;
 }
@@ -180,15 +181,15 @@ bool AJukeBox::RoomSecondActionActive()
 	{
 		if( !ObjectsState[0] )
 		{
-			SoundSource1->GetAudioComponent()->SetSound( ErrorSound1 );
+			ErrorSoundSource->GetAudioComponent()->SetSound( ErrorSound1 );
 		}
 		else if( !ObjectsState[1] )
 		{
-			SoundSource1->GetAudioComponent()->SetSound( ErrorSound2 );
+			ErrorSoundSource->GetAudioComponent()->SetSound( ErrorSound2 );
 		}
 		else if( !ObjectsState[2] )
 		{
-			SoundSource1->GetAudioComponent()->SetSound( ErrorSound3 );
+			ErrorSoundSource->GetAudioComponent()->SetSound( ErrorSound3 );
 		}
 		else
 		{
@@ -201,7 +202,7 @@ bool AJukeBox::RoomSecondActionActive()
 			OnRoomFinish( ActionStates++ );
 			return true;
 		}
-		SoundSource1->PlaySound();
+		ErrorSoundSource->PlaySound();
 	}
 	return false;
 }
