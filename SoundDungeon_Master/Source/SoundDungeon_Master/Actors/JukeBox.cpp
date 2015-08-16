@@ -13,7 +13,6 @@ AJukeBox::AJukeBox( const FObjectInitializer& ObjectInit )
 	ErrorSound2 = nullptr;
 	ErrorSound3 = nullptr;
 	ErrorSoundSource = nullptr;
-	MainSound = nullptr;
 	SoundPart1 = nullptr;
 	SoundPart2 = nullptr;
 	SoundPart3 = nullptr;
@@ -23,6 +22,9 @@ AJukeBox::AJukeBox( const FObjectInitializer& ObjectInit )
 	Part1StartTime = 0.f;
 	Part2StartTime = 0.f;
 	Part3StartTime = 0.f;
+	Part4StartTime = 0.f;
+	Part5StartTime = 0.f;
+	Part6StartTime = 0.f;
 
 	ObjectsState.Init( false, 3 );
 
@@ -56,13 +58,17 @@ void AJukeBox::BeginPlay()
 
 void AJukeBox::EnablePower()
 {
-	ActivateObject( 0 );
+	if( !ObjectsState[0] )
+	{
+		ObjectsState[0] = true;
+		OnObjectActivation( ActionStates, 0 );
+	}
 }
 
 void AJukeBox::DropPart( int32 part )
 {
 	FVector NewLocation = GetActorLocation();
-	NewLocation.Z -= GetActorScale().Z * 10;
+	NewLocation.Z -= GetActorScale().Z * 10 + 30;
 	AActor* Target = nullptr;
 	switch( part )
 	{
@@ -125,16 +131,20 @@ bool AJukeBox::RoomAction( AActor* Target )
 			{
 				ActivateObject( i );
 				PlayerRef->DestroyObject();
-				if( i == 2 )
+				switch( i )
 				{
-					if( ActionStates == 0 )
-					{
-						return RoomFirstActionActive();
-					}
-					else if( ActionStates == 1 )
-					{
-						return RoomSecondActionActive();
-					}
+					case 0 :
+						SoundSource1->GetAudioComponent()->SetSound( ( ActionStates ) ? ( SoundPart4 ) : ( SoundPart1 ) );
+						SoundSource1->PlaySound( ( ActionStates ) ? ( Part4StartTime ) : ( Part1StartTime ) );
+						break;
+					case 1 :
+						SoundSource2->GetAudioComponent()->SetSound( ( ActionStates ) ? ( SoundPart5 ) : ( SoundPart2 ) );
+						SoundSource2->PlaySound( ( ActionStates ) ? ( Part5StartTime ) : ( Part2StartTime ) );
+						break;
+					case 2 :
+						SoundSource3->GetAudioComponent()->SetSound( ( ActionStates ) ? ( SoundPart6 ) : ( SoundPart3 ) );
+						SoundSource3->PlaySound( ( ActionStates ) ? ( Part6StartTime ) : ( Part3StartTime ) );
+						break;
 				}
 				return true;
 			}
@@ -162,11 +172,10 @@ bool AJukeBox::RoomFirstActionActive()
 		else // All Objects insert
 		{
 			SoundSource1->GetAudioComponent()->SetSound( SoundPart1 );
-			SoundSource2->GetAudioComponent()->SetSound( SoundPart2 );
-			SoundSource3->GetAudioComponent()->SetSound( SoundPart3 );
 			SoundSource1->PlaySound( Part1StartTime );
 			SoundSource2->PlaySound( Part2StartTime );
 			SoundSource3->PlaySound( Part3StartTime );
+			ObjectsState.Init( false, 3 );
 			OnRoomFinish( ActionStates++ );
 			return true;
 		}
@@ -193,12 +202,10 @@ bool AJukeBox::RoomSecondActionActive()
 		}
 		else
 		{
-			SoundSource1->GetAudioComponent()->SetSound( SoundPart4 );
-			SoundSource2->GetAudioComponent()->SetSound( SoundPart5 );
-			SoundSource3->GetAudioComponent()->SetSound( SoundPart6 );
-			SoundSource1->PlaySound( Part1StartTime );
-			SoundSource2->PlaySound( Part2StartTime );
-			SoundSource3->PlaySound( Part3StartTime );
+			SoundSource1->PlaySound( Part4StartTime );
+			SoundSource2->PlaySound( Part5StartTime );
+			SoundSource3->PlaySound( Part6StartTime );
+			ObjectsState.Init( false, 3 );
 			OnRoomFinish( ActionStates++ );
 			return true;
 		}

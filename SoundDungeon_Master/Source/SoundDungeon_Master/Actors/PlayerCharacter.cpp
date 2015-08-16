@@ -125,14 +125,10 @@ void APlayerCharacter::InteractObject()
 		{
 			ActionObject();
 		}
-		else if( Target->ActorHasTag( GrabTag ) )
+		else if( !GrabedTarget && Target->ActorHasTag( GrabTag ) )
 		{
 			GrabObject();
 		}
-	}
-	else if( GrabedTarget )
-	{
-		ReleaseObject();
 	}
 }
 
@@ -191,6 +187,6 @@ void APlayerCharacter::SetupPlayerInputComponent( UInputComponent* InputComponen
 {
 	check( InputComponent );
 
-	InputComponent->BindKey( EKeys::RightMouseButton, IE_Pressed, this, &APlayerCharacter::InteractObject );
+	InputComponent->BindKey( EKeys::LeftMouseButton, IE_Pressed, this, &APlayerCharacter::InteractObject );
 }
 

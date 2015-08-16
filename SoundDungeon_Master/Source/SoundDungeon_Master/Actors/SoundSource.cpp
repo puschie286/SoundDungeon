@@ -110,8 +110,6 @@ void ASoundSource::Tick( float DeltaTime )
 
 		if( PlayTime + DeltaTime >= Duration )
 		{
-			LastUpdateStamp = 0.0;
-			StartStamp = 0.0;
 			OnSoundEnd();
 		}
 	}
