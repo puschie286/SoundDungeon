@@ -11,4 +11,8 @@ ABaseTubeCube::ABaseTubeCube( const FObjectInitializer& ObjectInitializer )
 	MeshPtr->SetStaticMesh( BaseCube.Object );
 	MeshPtr->SetMobility( EComponentMobility::Movable );
 	MeshPtr->CastShadow = 0;
+	MeshPtr->SetCollisionProfileName( FName( TEXT( "Trigger" ) ) );
+	MeshPtr->bGenerateOverlapEvents = true;
+
+	RootComponent = MeshPtr;
 }

@@ -5,7 +5,8 @@
 
 
 // Sets default values
-ATubeBase::ATubeBase()
+ATubeBase::ATubeBase( const FObjectInitializer& ObjectInitializer )
+	: Super( ObjectInitializer )
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
@@ -17,14 +18,21 @@ ATubeBase::ATubeBase()
 	Height = 100;
 	Width = 30;
 	Radius = 190;
+	bEnablePlayGeneration = true;
 
-	InitTube();
+	SoundSource = nullptr;
+	CollideSound = nullptr;
+	CubeClass = nullptr;
 }
 
 void ATubeBase::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	if( bEnablePlayGeneration )
+	{
+		InitTube();
+	}
 }
 
 /*
@@ -45,22 +53,15 @@ void ATubeBase::InitTube()
 {
 	UWAVLibrary* Instance = UWAVLibrary::GetInstance();
 
-	if( GetWorld() && BucketList.Num() == 0 )
+	if( GetWorld() )
 	{
-		if( !Instance->IsLoadedWAV( *( WavName ) ) )
-		{
-			Instance->LoadWAV( *( WavName ) );
-		}
-
-		TArray<uint8>* Data = Instance->GetWAV( *( WavName ) );
-
-		if( Data )
+		if( Instance->IsLoadedWAV( *( WavName ) ) || Instance->LoadWAV( *( WavName ) ) )
 		{
 			FWaveformConfig Config;
 			Config.Width = Width;
 			Config.Height = Height;
 			Config.Radius = Radius;
-			Instance->GenerateTube( Data, &Config, this, BucketList );
+			Instance->GenerateTube( Instance->GetWAV( *( WavName ) ), &Config, this, BucketList, CubeClass );
 		}
 	}
 }

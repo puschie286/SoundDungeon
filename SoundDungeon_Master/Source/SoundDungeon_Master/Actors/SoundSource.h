@@ -15,7 +15,7 @@ class SOUNDDUNGEON_MASTER_API ASoundSource : public AAmbientSound
 public:
 	UPROPERTY( VisibleAnywhere, BlueprintReadOnly, Category = "SoundSource" )
 	float PlayTime;
-	
+
 public:
 	ASoundSource( const FObjectInitializer &ObjectInitializer );
 

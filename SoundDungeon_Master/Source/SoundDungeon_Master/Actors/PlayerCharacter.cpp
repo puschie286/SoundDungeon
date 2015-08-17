@@ -41,7 +41,7 @@ void APlayerCharacter::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
 
-	if( ++CheckCounter > CheckPeriod )
+	if( bRangeCheckEnabled && ++CheckCounter > CheckPeriod )
 	{
 		RangeCheck();
 		CheckCounter = 0;
@@ -57,8 +57,15 @@ void APlayerCharacter::GrabObject()
 {
 	if( Target )
 	{
+		ReleaseObject();
 		GrabedTarget = Target;
 		GrabedTarget->DisableComponentsSimulatePhysics();
+
+		if( GrabedTarget->GetClass()->ImplementsInterface( USimpleAction::StaticClass() ) ) // Blueprint Imeplementation
+		{
+			bool Result;
+			ISimpleAction::Execute_Action( GrabedTarget, GrabedTarget, Result );
+		}
 	}
 }
 
@@ -118,14 +125,10 @@ void APlayerCharacter::InteractObject()
 		{
 			ActionObject();
 		}
-		else if( Target->ActorHasTag( GrabTag ) )
+		else if( !GrabedTarget && Target->ActorHasTag( GrabTag ) )
 		{
 			GrabObject();
 		}
-	}
-	else if( GrabedTarget )
-	{
-		ReleaseObject();
 	}
 }
 
@@ -184,6 +187,6 @@ void APlayerCharacter::SetupPlayerInputComponent( UInputComponent* InputComponen
 {
 	check( InputComponent );
 
-	InputComponent->BindKey( EKeys::RightMouseButton, IE_Pressed, this, &APlayerCharacter::InteractObject );
+	InputComponent->BindKey( EKeys::LeftMouseButton, IE_Pressed, this, &APlayerCharacter::InteractObject );
 }
 

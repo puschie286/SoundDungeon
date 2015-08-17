@@ -33,6 +33,9 @@ public: // Properties
 	ASoundSource*		SoundSource3;
 
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
+	ASoundSource*		ErrorSoundSource;
+
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
 	USoundWave*		ErrorSound1;
 
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
@@ -40,9 +43,6 @@ public: // Properties
 
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
 	USoundWave*		ErrorSound3;
-
-	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
-	USoundWave*		MainSound;
 
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
 	USoundWave*		SoundPart1;
@@ -54,6 +54,15 @@ public: // Properties
 	USoundWave*		SoundPart3;
 
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
+	USoundWave*		SoundPart4;
+
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
+	USoundWave*		SoundPart5;
+
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
+	USoundWave*		SoundPart6;
+
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
 	float			Part1StartTime;
 
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
@@ -61,6 +70,15 @@ public: // Properties
 
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
 	float			Part3StartTime;
+	
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
+	float			Part4StartTime;
+	
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
+	float			Part5StartTime;
+	
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
+	float			Part6StartTime;
 
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
 	AActor*			DropPart1;

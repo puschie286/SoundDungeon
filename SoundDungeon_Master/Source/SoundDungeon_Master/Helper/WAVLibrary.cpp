@@ -355,7 +355,7 @@ bool UWAVLibrary::GenerateWaveform( TArray<uint8>* WavPtr, FWaveformConfig* WCon
 	return false;
 }
 
-bool UWAVLibrary::GenerateTube( TArray<uint8>* WavPtr, FWaveformConfig* WConfig, AActor* Owner, TArray<AActor*>& ActorList )
+bool UWAVLibrary::GenerateTube( TArray<uint8>* WavPtr, FWaveformConfig* WConfig, AActor* Owner, TArray<AActor*>& ActorList, TSubclassOf<class ABaseTubeCube> CubeClass )
 {
 	if( WavPtr && Owner )
 	{
@@ -427,7 +427,9 @@ bool UWAVLibrary::GenerateTube( TArray<uint8>* WavPtr, FWaveformConfig* WConfig,
 				}
 				if( MaxScaledSample > 0.01f )
 				{
-					ABaseTubeCube* Temp = Cast<ABaseTubeCube>( Owner->GetWorld()->SpawnActor( ABaseTubeCube::StaticClass() ) );
+					ABaseTubeCube* Temp = Cast<ABaseTubeCube>( Owner->GetWorld()->SpawnActor( 
+						( CubeClass ) ? ( CubeClass ) : ( ABaseTubeCube::StaticClass() ) )
+					);
 					if( Temp )
 					{
 						auto GetRot = []( int32 State ) -> int32
@@ -831,9 +833,9 @@ void UWAVLibrary::LIBGenerateWaveform( TArray<uint8>& InData, FWaveformConfig& W
 	GetInstance()->GenerateWaveform( &InData, &WConfig );
 }
 
-void UWAVLibrary::LIBGenerateTube( TArray<uint8>& InData, FWaveformConfig& WConfig, AActor* Owner, TArray<AActor*>& ActorList )
+void UWAVLibrary::LIBGenerateTube( TArray<uint8>& InData, FWaveformConfig& WConfig, AActor* Owner, TArray<AActor*>& ActorList, TSubclassOf<class ABaseTubeCube> CubeClass )
 {
-	GetInstance()->GenerateTube( &InData, &WConfig, Owner, ActorList );
+	GetInstance()->GenerateTube( &InData, &WConfig, Owner, ActorList, CubeClass );
 }
 
 void UWAVLibrary::LIBCalculateFrequencySpectrum( int32 Channel, float StartTime, float TimeLength, int32 SpectrumWidth, FString WAVName, TArray<float> &OutSpectrum )

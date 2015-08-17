@@ -12,13 +12,19 @@ AJukeBox::AJukeBox( const FObjectInitializer& ObjectInit )
 	ErrorSound1 = nullptr;
 	ErrorSound2 = nullptr;
 	ErrorSound3 = nullptr;
-	MainSound = nullptr;
+	ErrorSoundSource = nullptr;
 	SoundPart1 = nullptr;
 	SoundPart2 = nullptr;
 	SoundPart3 = nullptr;
+	SoundPart4 = nullptr;
+	SoundPart5 = nullptr;
+	SoundPart6 = nullptr;
 	Part1StartTime = 0.f;
 	Part2StartTime = 0.f;
 	Part3StartTime = 0.f;
+	Part4StartTime = 0.f;
+	Part5StartTime = 0.f;
+	Part6StartTime = 0.f;
 
 	ObjectsState.Init( false, 3 );
 
@@ -34,9 +40,9 @@ void AJukeBox::BeginPlay()
 	{
 		UE_LOG( LogTemp, Warning, TEXT( "No Character found" ) );
 	}
-	if( !SoundSource1 )
+	if( !SoundSource1 || !SoundSource2 || !SoundSource3 || !ErrorSoundSource )
 	{
-		UE_LOG( LogTemp, Warning, TEXT( "No SoundSource set for JukeBox" ) );
+		UE_LOG( LogTemp, Warning, TEXT( "Not all SoundSources are set for JukeBox" ) );
 	}
 	if( !DropPart1 || !DropPart2 || !DropPart3 )
 	{
@@ -52,13 +58,26 @@ void AJukeBox::BeginPlay()
 
 void AJukeBox::EnablePower()
 {
-	ActivateObject( 0 );
+	if( !ObjectsState[0] )
+	{
+		ObjectsState[0] = true;
+		OnObjectActivation( ActionStates, 0 );
+		// Start other insert Sounds
+		if( ObjectsState[1] )
+		{
+			SoundSource2->PlaySound( ( ActionStates ) ? ( Part5StartTime ) : ( Part2StartTime ) );
+		}
+		if( ObjectsState[2] )
+		{
+			SoundSource3->PlaySound( ( ActionStates ) ? ( Part6StartTime ) : ( Part3StartTime ) );
+		}
+	}
 }
 
 void AJukeBox::DropPart( int32 part )
 {
 	FVector NewLocation = GetActorLocation();
-	NewLocation.Z -= GetActorScale().Z * 10;
+	NewLocation.Z -= GetActorScale().Z * 10 + 30;
 	AActor* Target = nullptr;
 	switch( part )
 	{
@@ -121,9 +140,26 @@ bool AJukeBox::RoomAction( AActor* Target )
 			{
 				ActivateObject( i );
 				PlayerRef->DestroyObject();
-				if( ActionStates == 0 && i == 2 )
+				switch( i )
 				{
-					return RoomFirstActionActive();
+					case 0 :
+						SoundSource1->GetAudioComponent()->SetSound( ( ActionStates ) ? ( SoundPart4 ) : ( SoundPart1 ) );
+						SoundSource1->PlaySound( ( ActionStates ) ? ( Part4StartTime ) : ( Part1StartTime ) );
+						break;
+					case 1 :
+						SoundSource2->GetAudioComponent()->SetSound( ( ActionStates ) ? ( SoundPart5 ) : ( SoundPart2 ) );
+						if( ObjectsState[0] )
+						{
+							SoundSource2->PlaySound( ( ActionStates ) ? ( Part5StartTime ) : ( Part2StartTime ) );
+						}
+						break;
+					case 2 :
+						SoundSource3->GetAudioComponent()->SetSound( ( ActionStates ) ? ( SoundPart6 ) : ( SoundPart3 ) );
+						if( ObjectsState[0] )
+						{
+							SoundSource3->PlaySound( ( ActionStates ) ? ( Part6StartTime ) : ( Part3StartTime ) );
+						}
+						break;
 				}
 				return true;
 			}
@@ -138,34 +174,58 @@ bool AJukeBox::RoomFirstActionActive()
 	{
 		if( !ObjectsState[0] )
 		{
-			SoundSource1->GetAudioComponent()->SetSound( ErrorSound1 );
+			ErrorSoundSource->GetAudioComponent()->SetSound( ErrorSound1 );
 		}
 		else if( !ObjectsState[1] )
 		{
-			SoundSource1->GetAudioComponent()->SetSound( ErrorSound2 );
+			ErrorSoundSource->GetAudioComponent()->SetSound( ErrorSound2 );
 		}
 		else if( !ObjectsState[2] )
 		{
-			SoundSource1->GetAudioComponent()->SetSound( ErrorSound3 );
+			ErrorSoundSource->GetAudioComponent()->SetSound( ErrorSound3 );
 		}
 		else // All Objects insert
 		{
 			SoundSource1->GetAudioComponent()->SetSound( SoundPart1 );
-			SoundSource2->GetAudioComponent()->SetSound( SoundPart2 );
-			SoundSource3->GetAudioComponent()->SetSound( SoundPart3 );
 			SoundSource1->PlaySound( Part1StartTime );
 			SoundSource2->PlaySound( Part2StartTime );
 			SoundSource3->PlaySound( Part3StartTime );
+			ObjectsState.Init( false, 3 );
 			OnRoomFinish( ActionStates++ );
 			return true;
 		}
-		SoundSource1->PlaySound();
+		ErrorSoundSource->PlaySound();
 	}
 	return false;
 }
 
 bool AJukeBox::RoomSecondActionActive()
 {
+	if( ObjectsState.Num() >= 3 )
+	{
+		if( !ObjectsState[0] )
+		{
+			ErrorSoundSource->GetAudioComponent()->SetSound( ErrorSound1 );
+		}
+		else if( !ObjectsState[1] )
+		{
+			ErrorSoundSource->GetAudioComponent()->SetSound( ErrorSound2 );
+		}
+		else if( !ObjectsState[2] )
+		{
+			ErrorSoundSource->GetAudioComponent()->SetSound( ErrorSound3 );
+		}
+		else
+		{
+			SoundSource1->PlaySound( Part4StartTime );
+			SoundSource2->PlaySound( Part5StartTime );
+			SoundSource3->PlaySound( Part6StartTime );
+			ObjectsState.Init( false, 3 );
+			OnRoomFinish( ActionStates++ );
+			return true;
+		}
+		ErrorSoundSource->PlaySound();
+	}
 	return false;
 }
 
