@@ -476,15 +476,6 @@ bool UWAVLibrary::GenerateTube( TArray<uint8>* WavPtr, FWaveformConfig* WConfig,
 	return false;
 }
 
-float GetFFTInValue( const int16 SampleValue, const int16 SampleIndex, const int16 SampleCount )
-{
-	float FFTValue = SampleValue;
-
-	FFTValue *= 0.5f * ( 1 - FMath::Cos( 2 * PI * SampleIndex / ( SampleCount - 1 ) ) );
-
-	return FFTValue;
-}
-
 void UWAVLibrary::CalculateFrequencySpectrum( const bool bSplitChannels, const float StartTime, const float TimeLength, const int32 SpectrumWidth, TArray<uint8>* InWavPtr, TArray<TArray<float>> &OutSpectrum )
 {
 	OutSpectrum.Empty();
@@ -562,7 +553,9 @@ void UWAVLibrary::CalculateFrequencySpectrum( const bool bSplitChannels, const f
 						{
 							for( int32 ChannelIndex = 0; ChannelIndex < 2; ++ChannelIndex )
 							{
-								buf[ChannelIndex][SampleIndex].r = GetFFTInValue( *SamplePtr, SampleIndex, SamplesToRead );
+								float FFTValue = *SamplePtr;
+								FFTValue *= 0.5f * ( 1 - FMath::Cos( 2 * PI * SampleIndex / ( SamplesToRead - 1 ) ) );
+								buf[ChannelIndex][SampleIndex].r = FFTValue;
 								buf[ChannelIndex][SampleIndex].i = 0.f;
 								SamplePtr++;
 							}
