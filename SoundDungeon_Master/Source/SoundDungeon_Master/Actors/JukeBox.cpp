@@ -62,6 +62,15 @@ void AJukeBox::EnablePower()
 	{
 		ObjectsState[0] = true;
 		OnObjectActivation( ActionStates, 0 );
+		// Start other insert Sounds
+		if( ObjectsState[1] )
+		{
+			SoundSource2->PlaySound( ( ActionStates ) ? ( Part5StartTime ) : ( Part2StartTime ) );
+		}
+		if( ObjectsState[2] )
+		{
+			SoundSource3->PlaySound( ( ActionStates ) ? ( Part6StartTime ) : ( Part3StartTime ) );
+		}
 	}
 }
 
@@ -139,11 +148,17 @@ bool AJukeBox::RoomAction( AActor* Target )
 						break;
 					case 1 :
 						SoundSource2->GetAudioComponent()->SetSound( ( ActionStates ) ? ( SoundPart5 ) : ( SoundPart2 ) );
-						SoundSource2->PlaySound( ( ActionStates ) ? ( Part5StartTime ) : ( Part2StartTime ) );
+						if( ObjectsState[0] )
+						{
+							SoundSource2->PlaySound( ( ActionStates ) ? ( Part5StartTime ) : ( Part2StartTime ) );
+						}
 						break;
 					case 2 :
 						SoundSource3->GetAudioComponent()->SetSound( ( ActionStates ) ? ( SoundPart6 ) : ( SoundPart3 ) );
-						SoundSource3->PlaySound( ( ActionStates ) ? ( Part6StartTime ) : ( Part3StartTime ) );
+						if( ObjectsState[0] )
+						{
+							SoundSource3->PlaySound( ( ActionStates ) ? ( Part6StartTime ) : ( Part3StartTime ) );
+						}
 						break;
 				}
 				return true;
