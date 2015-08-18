@@ -84,6 +84,11 @@ void ASoundSource::GetAccurratPlayTime( float& PlaybackTime )
 	PlaybackTime = (float)( FPlatformTime::Seconds() - StartStamp );
 }
 
+float ASoundSource::GetAccPlayTime()
+{
+	return (float)( FPlatformTime::Seconds() - StartStamp );
+}
+
 void ASoundSource::SyncTimer()
 {
 	if( GetAudioComponent()->IsPlaying() )

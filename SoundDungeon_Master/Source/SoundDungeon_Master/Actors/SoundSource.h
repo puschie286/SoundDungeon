@@ -37,6 +37,8 @@ public:
 	UFUNCTION( BlueprintCallable, Category = "SoundSource" )
 	void GetAccurratPlayTime( float& PlaybackTime );
 
+	float GetAccPlayTime();
+
 	UFUNCTION( BlueprintCallable, Category = "SoundSource" )
 	void SyncTimer();
 
