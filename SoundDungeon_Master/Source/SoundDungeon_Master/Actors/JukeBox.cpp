@@ -63,13 +63,28 @@ void AJukeBox::EnablePower()
 		ObjectsState[0] = true;
 		OnObjectActivation( ActionStates, 0 );
 		// Start other insert Sounds
-		if( ObjectsState[1] )
+
+		if( ActionStates )
 		{
-			SoundSource2->PlaySound( ( ActionStates ) ? ( Part5StartTime ) : ( Part2StartTime ) );
+			SoundSource1->GetAudioComponent()->SetSound( SoundPart4 );
+			SoundSource2->GetAudioComponent()->SetSound( SoundPart5 );
+			SoundSource3->GetAudioComponent()->SetSound( SoundPart6 );
+			SoundSource1->PlaySound( Part4StartTime );
+			SoundSource2->PlaySound( Part5StartTime );
+			SoundSource3->PlaySound( Part6StartTime );
 		}
-		if( ObjectsState[2] )
+		else
 		{
-			SoundSource3->PlaySound( ( ActionStates ) ? ( Part6StartTime ) : ( Part3StartTime ) );
+			SoundSource1->GetAudioComponent()->SetSound( SoundPart1 );
+			SoundSource1->PlaySound( Part1StartTime );
+			if( ObjectsState[1] )
+			{
+				SoundSource2->PlaySound( Part2StartTime );
+			}
+			if( ObjectsState[2] )
+			{
+				SoundSource3->PlaySound( Part3StartTime );
+			}
 		}
 	}
 }
@@ -186,10 +201,6 @@ bool AJukeBox::RoomFirstActionActive()
 		}
 		else // All Objects insert
 		{
-			SoundSource1->GetAudioComponent()->SetSound( SoundPart1 );
-			SoundSource1->PlaySound( Part1StartTime );
-			SoundSource2->PlaySound( Part2StartTime );
-			SoundSource3->PlaySound( Part3StartTime );
 			ObjectsState.Init( false, 3 );
 			OnRoomFinish( ActionStates++ );
 			return true;
@@ -217,9 +228,6 @@ bool AJukeBox::RoomSecondActionActive()
 		}
 		else
 		{
-			SoundSource1->PlaySound( Part4StartTime );
-			SoundSource2->PlaySound( Part5StartTime );
-			SoundSource3->PlaySound( Part6StartTime );
 			ObjectsState.Init( false, 3 );
 			OnRoomFinish( ActionStates++ );
 			return true;
