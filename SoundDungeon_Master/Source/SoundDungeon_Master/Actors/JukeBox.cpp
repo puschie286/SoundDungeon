@@ -40,6 +40,11 @@ void AJukeBox::BeginPlay()
 	{
 		UE_LOG( LogTemp, Warning, TEXT( "No Character found" ) );
 	}
+	if( !SoundPart1 || !SoundPart2 || !SoundPart3 || !SoundPart4 || !SoundPart5 || !SoundPart6 )
+	{
+		UE_LOG( LogTemp, Warning, TEXT( "Not all Sounds are set for JukeBox" ) );
+		//Repair actions
+	}
 	if( !SoundSource1 || !SoundSource2 || !SoundSource3 || !ErrorSoundSource )
 	{
 		UE_LOG( LogTemp, Warning, TEXT( "Not all SoundSources are set for JukeBox" ) );
@@ -54,6 +59,17 @@ void AJukeBox::BeginPlay()
 		DropPart2->SetActorHiddenInGame( true );
 		DropPart3->SetActorHiddenInGame( true );
 	}
+
+	auto LoadSound = []( const TCHAR* Path ) -> USoundWave*
+	{
+		return Cast<USoundWave>( StaticLoadObject( USoundWave::StaticClass(), NULL, Path ) );
+	};
+	SoundPart1 = LoadSound( *FString( TEXT( "/Game/AudioFiles/MainVocal.MainVocal" ) ) );
+	SoundPart2 = LoadSound( *FString( TEXT( "/Game/AudioFiles/KickDrum.KickDrum" ) ) );
+	SoundPart3 = LoadSound( *FString( TEXT( "/Game/AudioFiles/BreakBeat.BreakBeat" ) ) );
+	SoundPart4 = LoadSound( *FString( TEXT( "/Game/AudioFiles/Beatz_Flutestep.Beatz_Flutestep" ) ) );
+	SoundPart5 = LoadSound( *FString( TEXT( "/Game/AudioFiles/Wobble_Flutestep.Wobble_Flutestep" ) ) );
+	SoundPart6 = LoadSound( *FString( TEXT( "/Game/AudioFiles/oriental_Flutestep.oriental_Flutestep" ) ) );
 }
 
 void AJukeBox::EnablePower()
