@@ -458,7 +458,7 @@ bool UWAVLibrary::GenerateTube( TArray<uint8>* WavPtr, FWaveformConfig* WConfig,
 							}
 						};
 						Temp->AttachRootComponentToActor( Owner );
-						Temp->SetActorRelativeScale3D( FVector( 0.1f, MaxScaledSample / 10.f, 0.1f ) );
+						//Temp->SetActorRelativeScale3D( FVector( 0.1f, MaxScaledSample / 10.f, 0.1f ) );
 						Temp->SetActorRelativeLocation( FVector( ( XOffset + 1 ) * -50.f, RSin * WConfig->Radius, RCos ) );
 						Temp->SetActorRelativeRotation( FRotator( 0.f, 0.f, GetRot( RadiusState ) ) );
 						ActorList.Add( Temp );
