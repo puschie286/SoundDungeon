@@ -110,16 +110,12 @@ void ASoundSource::HardSync()
 void ASoundSource::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
+	
+	SyncTimer();
 
-	if( GetAudioComponent()->IsPlaying() )
+	if( GetAudioComponent()->IsPlaying() && PlayTime + DeltaTime >= Duration )
 	{
-		PlayTime += FPlatformTime::Seconds() - LastUpdateStamp;
-		LastUpdateStamp = FPlatformTime::Seconds();
-
-		if( PlayTime + DeltaTime >= Duration )
-		{
-			OnSoundEnd();
-		}
+		OnSoundEnd();
 	}
 }
 

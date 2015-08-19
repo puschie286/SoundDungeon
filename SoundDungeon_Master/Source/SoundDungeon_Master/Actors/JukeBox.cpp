@@ -157,10 +157,6 @@ bool AJukeBox::RoomAction( AActor* Target )
 				PlayerRef->DestroyObject();
 				switch( i )
 				{
-					case 0 :
-						SoundSource1->GetAudioComponent()->SetSound( ( ActionStates ) ? ( SoundPart4 ) : ( SoundPart1 ) );
-						SoundSource1->PlaySound( ( ActionStates ) ? ( SoundSource2->GetAccPlayTime() ) : ( Part1StartTime ) );
-						break;
 					case 1 :
 						SoundSource2->GetAudioComponent()->SetSound( ( ActionStates ) ? ( SoundPart5 ) : ( SoundPart2 ) );
 						if( ObjectsState[0] )
@@ -229,6 +225,8 @@ bool AJukeBox::RoomSecondActionActive()
 		else
 		{
 			ObjectsState.Init( false, 3 );
+			SoundSource1->GetAudioComponent()->SetSound( SoundPart4 );
+			SoundSource1->PlaySound( ( SoundSource2->GetAudioComponent()->IsPlaying() ) ? ( SoundSource2->GetAccPlayTime() ) : ( 0.f ) );
 			OnRoomFinish( ActionStates++ );
 			return true;
 		}
