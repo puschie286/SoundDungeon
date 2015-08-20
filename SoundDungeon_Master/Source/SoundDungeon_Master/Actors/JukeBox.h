@@ -80,15 +80,6 @@ public: // Properties
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
 	float			Part6StartTime;
 
-	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
-	AActor*			DropPart1;
-
-	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
-	AActor*			DropPart2;
-
-	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = Default )
-	AActor*			DropPart3;
-
 public : // Functions
 	virtual bool	Action( AActor* Target ) override;
 
